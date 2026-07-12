@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import { ndiMatrix } from './services/ndiMatrix'
 import { startAutomationApi, stopAutomationApi } from './services/automationApi'
 import { startClientHub, stopClientHub } from './services/clientHub'
+import { ndiDiscovery } from './services/ndiDiscovery'
 import type { AutomationCommand, NewSourceInput, Source, SceneLayer } from '../shared/types'
 
 function createWindow(): void {
@@ -40,6 +41,10 @@ function createWindow(): void {
 
   ndiMatrix.on('state-changed', (state) => {
     mainWindow.webContents.send('matrix:state-changed', state)
+  })
+
+  ndiDiscovery.on('changed', (sources) => {
+    mainWindow.webContents.send('discovery:changed', sources)
   })
 }
 
@@ -82,8 +87,11 @@ app.whenReady().then(() => {
     ndiMatrix.removeLayer(sceneId, layerId)
   )
 
+  ipcMain.handle('discovery:get-sources', () => ndiDiscovery.list())
+
   startAutomationApi()
   startClientHub()
+  ndiDiscovery.start()
 
   createWindow()
 
@@ -95,6 +103,7 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   stopAutomationApi()
   stopClientHub()
+  ndiDiscovery.stop()
   if (process.platform !== 'darwin') {
     app.quit()
   }

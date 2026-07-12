@@ -27,6 +27,14 @@ export type NewSourceInput =
   | { kind: 'ndi'; name: string; machineName: string }
   | { kind: 'web'; name: string; url: string; transparent: boolean }
 
+/** A real NDI sender found on the network via mDNS (_ndi._tcp.local). */
+export interface DiscoveredNdiSource {
+  id: string
+  name: string
+  host: string
+  port: number
+}
+
 export interface SceneLayer {
   id: string
   sourceId: string

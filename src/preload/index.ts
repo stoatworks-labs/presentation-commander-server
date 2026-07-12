@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type {
   AutomationCommand,
+  DiscoveredNdiSource,
   MatrixOutput,
   NewSourceInput,
   OrchestratorState,
@@ -47,6 +48,17 @@ const api = {
       ipcRenderer.invoke('scenes:layer:front', sceneId, layerId),
     removeLayer: (sceneId: string, layerId: string) =>
       ipcRenderer.invoke('scenes:layer:remove', sceneId, layerId)
+  },
+  discovery: {
+    getSources: (): Promise<DiscoveredNdiSource[]> => ipcRenderer.invoke('discovery:get-sources'),
+    onChanged: (callback: (sources: DiscoveredNdiSource[]) => void) => {
+      const listener = (_e: Electron.IpcRendererEvent, sources: DiscoveredNdiSource[]): void =>
+        callback(sources)
+      ipcRenderer.on('discovery:changed', listener)
+      return (): void => {
+        ipcRenderer.removeListener('discovery:changed', listener)
+      }
+    }
   }
 }
 

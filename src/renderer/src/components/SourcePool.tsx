@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import type { NewSourceInput, Source } from '../../../shared/types'
+import type { DiscoveredNdiSource, NewSourceInput, Source } from '../../../shared/types'
 
 interface Props {
   sources: Source[]
+  discoveredSources: DiscoveredNdiSource[]
   selectedId: string | null
   editingSceneName: string | null
   onSelect: (id: string) => void
@@ -18,6 +19,7 @@ function emptyForm(): NewSourceInput {
 
 function SourcePool({
   sources,
+  discoveredSources,
   selectedId,
   editingSceneName,
   onSelect,
@@ -81,11 +83,32 @@ function SourcePool({
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
           {form.kind === 'ndi' ? (
-            <input
-              placeholder="Machine name"
-              value={form.machineName}
-              onChange={(e) => setForm({ ...form, machineName: e.target.value })}
-            />
+            <>
+              <select
+                className="discovered-select"
+                defaultValue=""
+                onChange={(e) => {
+                  const found = discoveredSources.find((d) => d.id === e.target.value)
+                  if (found) setForm({ kind: 'ndi', name: found.name, machineName: found.host })
+                }}
+              >
+                <option value="" disabled>
+                  {discoveredSources.length > 0
+                    ? `${discoveredSources.length} found on network…`
+                    : 'No NDI sources found on network yet'}
+                </option>
+                {discoveredSources.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name} ({d.host}:{d.port})
+                  </option>
+                ))}
+              </select>
+              <input
+                placeholder="Machine name (or pick discovered above)"
+                value={form.machineName}
+                onChange={(e) => setForm({ ...form, machineName: e.target.value })}
+              />
+            </>
           ) : (
             <>
               <input

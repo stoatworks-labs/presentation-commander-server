@@ -281,6 +281,7 @@ class NdiMatrixService extends EventEmitter {
       existing.app = info.app
       existing.online = true
       existing.lastSeen = Date.now()
+      this.upsertClientSource(existing.id, info.name, info.app, true)
       this.publish()
       return existing.id
     }
@@ -293,6 +294,7 @@ class NdiMatrixService extends EventEmitter {
       online: true,
       lastSeen: Date.now()
     })
+    this.upsertClientSource(id, info.name, info.app, true)
     this.publish()
     return id
   }
@@ -302,7 +304,38 @@ class NdiMatrixService extends EventEmitter {
     if (!client) return
     client.online = online
     client.lastSeen = Date.now()
+    const source = this.sources.find((s) => s.id === this.clientSourceId(id))
+    if (source && source.kind === 'ndi') source.connected = online
     this.publish()
+  }
+
+  /** Every connected Client Node shows up as a routable NDI-kind source automatically. */
+  private clientSourceId(clientId: string): string {
+    return `client-src-${clientId}`
+  }
+
+  private upsertClientSource(
+    clientId: string,
+    name: string,
+    app: ClientNode['app'],
+    connected: boolean
+  ): void {
+    const id = this.clientSourceId(clientId)
+    const existing = this.sources.find((s) => s.id === id)
+    if (existing && existing.kind === 'ndi') {
+      existing.name = `${name} (${app})`
+      existing.machineName = name
+      existing.connected = connected
+      return
+    }
+    this.sources.push({
+      kind: 'ndi',
+      id,
+      name: `${name} (${app})`,
+      machineName: name,
+      frameRate: null,
+      connected
+    })
   }
 
   syncSlideState(

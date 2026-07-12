@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type {
   AutomationCommand,
+  DiscoveredNdiSource,
   NewSourceInput,
   OrchestratorState,
   Source
@@ -19,6 +20,7 @@ function App(): React.JSX.Element {
   const [editingSceneId, setEditingSceneId] = useState<string | null>(null)
   const [activeClientId, setActiveClientId] = useState<string | null>(null)
   const [dismissedMessageAt, setDismissedMessageAt] = useState<number | null>(null)
+  const [discoveredSources, setDiscoveredSources] = useState<DiscoveredNdiSource[]>([])
 
   useEffect(() => {
     window.api.matrix.getState().then((initial) => {
@@ -27,6 +29,11 @@ function App(): React.JSX.Element {
       setActiveClientId(initial.clients[0]?.id ?? null)
     })
     return window.api.matrix.onStateChanged(setState)
+  }, [])
+
+  useEffect(() => {
+    window.api.discovery.getSources().then(setDiscoveredSources)
+    return window.api.discovery.onChanged(setDiscoveredSources)
   }, [])
 
   const broadcastSentAt = state?.broadcastMessage?.sentAt
@@ -81,6 +88,7 @@ function App(): React.JSX.Element {
           />
           <SourcePool
             sources={state.sources}
+            discoveredSources={discoveredSources}
             selectedId={selectedSourceId}
             editingSceneName={editingScene?.name ?? null}
             onSelect={setSelectedSourceId}
