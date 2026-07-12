@@ -132,6 +132,12 @@ class NdiMatrixService extends EventEmitter {
 
   private broadcastMessage: BroadcastMessage | null = null
 
+  /** Registered by the client hub once it's listening; lets executeCommand hand
+   *  next/previous-slide to a live Client Node instead of mutating state locally. */
+  private commandForwarder:
+    | ((clientId: string, command: { type: 'next-slide' } | { type: 'previous-slide' }) => boolean)
+    | null = null
+
   getState(): OrchestratorState {
     return {
       sources: this.sources,
@@ -259,6 +265,63 @@ class NdiMatrixService extends EventEmitter {
     return scene
   }
 
+  // --- Client hub --------------------------------------------------------
+
+  setCommandForwarder(
+    fn: (clientId: string, command: { type: 'next-slide' } | { type: 'previous-slide' }) => boolean
+  ): void {
+    this.commandForwarder = fn
+  }
+
+  /** Reuses the existing client id for a matching name so reconnects don't pile up duplicates. */
+  registerClient(info: Pick<ClientNode, 'name' | 'platform' | 'app'>): string {
+    const existing = this.clients.find((c) => c.name === info.name)
+    if (existing) {
+      existing.platform = info.platform
+      existing.app = info.app
+      existing.online = true
+      existing.lastSeen = Date.now()
+      this.publish()
+      return existing.id
+    }
+    const id = `live-${randomUUID().slice(0, 8)}`
+    this.clients.push({
+      id,
+      name: info.name,
+      platform: info.platform,
+      app: info.app,
+      online: true,
+      lastSeen: Date.now()
+    })
+    this.publish()
+    return id
+  }
+
+  setClientOnline(id: string, online: boolean): void {
+    const client = this.clients.find((c) => c.id === id)
+    if (!client) return
+    client.online = online
+    client.lastSeen = Date.now()
+    this.publish()
+  }
+
+  syncSlideState(
+    clientId: string,
+    state: { totalSlides: number; currentSlideIndex: number; notesBySlide: Record<number, string> }
+  ): void {
+    const client = this.clients.find((c) => c.id === clientId)
+    if (!client) return
+    client.totalSlides = state.totalSlides
+    client.lastSeen = Date.now()
+    this.notes[clientId] = Object.entries(state.notesBySlide).map(([slideIndex, text]) => ({
+      slideIndex: Number(slideIndex),
+      text,
+      receivedAt: Date.now()
+    }))
+    this.activeSlideIndex[clientId] = state.currentSlideIndex
+    this.publish()
+  }
+
   // --- Routing & automation --------------------------------------------
 
   route(outputId: string, routedId: string | null): void {
@@ -292,6 +355,7 @@ class NdiMatrixService extends EventEmitter {
         return
       case 'next-slide':
       case 'previous-slide': {
+        if (this.commandForwarder?.(command.clientId, { type: command.type })) return
         const slides = (this.notes[command.clientId] ?? [])
           .map((n) => n.slideIndex)
           .sort((a, b) => a - b)

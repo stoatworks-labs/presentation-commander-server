@@ -68,6 +68,8 @@ export interface ClientNode {
   app: 'powerpoint' | 'keynote' | 'google-slides' | 'canva' | 'pdf'
   online: boolean
   lastSeen: number
+  /** Set once a live Client Node has synced its deck; absent for mock/demo clients. */
+  totalSlides?: number
 }
 
 export interface BroadcastMessage {

@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { ndiMatrix } from './services/ndiMatrix'
 import { startAutomationApi, stopAutomationApi } from './services/automationApi'
+import { startClientHub, stopClientHub } from './services/clientHub'
 import type { AutomationCommand, NewSourceInput, Source, SceneLayer } from '../shared/types'
 
 function createWindow(): void {
@@ -82,6 +83,7 @@ app.whenReady().then(() => {
   )
 
   startAutomationApi()
+  startClientHub()
 
   createWindow()
 
@@ -92,6 +94,7 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   stopAutomationApi()
+  stopClientHub()
   if (process.platform !== 'darwin') {
     app.quit()
   }
