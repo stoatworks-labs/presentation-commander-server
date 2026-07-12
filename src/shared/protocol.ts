@@ -1,6 +1,6 @@
 // Wire protocol between the Master Server's client hub (ws://0.0.0.0:9800)
 // and a Client Node. Kept as plain JSON messages, one per WebSocket frame.
-// Mirrored in the livemaster-client-node repo — keep both in sync by hand.
+// Mirrored in the presentation-commander-client repo — keep both in sync by hand.
 
 export type ClientPlatform = 'windows' | 'macos'
 export type ClientApp = 'powerpoint' | 'keynote' | 'google-slides' | 'canva' | 'pdf'

@@ -1,7 +1,7 @@
 {
-  "name": "livemaster-orchestrator",
+  "name": "presentation-commander-server",
   "version": "1.0.0",
-  "description": "Master Server for the LiveMaster Orchestrator live event production framework",
+  "description": "Presentation Commander — Master Server for live event production (NDI matrix routing, scene compositing, presenter notes)",
   "main": "./out/main/index.js",
   "author": "Allan Sargeant",
   "scripts": {

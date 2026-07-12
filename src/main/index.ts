@@ -49,7 +49,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.livemaster.orchestrator')
+  electronApp.setAppUserModelId('com.presentationcommander.server')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

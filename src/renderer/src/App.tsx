@@ -75,7 +75,7 @@ function App(): React.JSX.Element {
 
   return (
     <div className="app-shell">
-      <div className="app-titlebar">LiveMaster Orchestrator</div>
+      <div className="app-titlebar">Presentation Commander</div>
       <div className="app-grid">
         <div className="left-column">
           <Scenes
