@@ -23,13 +23,35 @@ export interface WebSource {
 
 export type Source = NdiSource | WebSource
 
+export type NewSourceInput =
+  | { kind: 'ndi'; name: string; machineName: string }
+  | { kind: 'web'; name: string; url: string; transparent: boolean }
+
+export interface SceneLayer {
+  id: string
+  sourceId: string
+  /** Percentage-based transform (0-100) relative to the compositor canvas. */
+  x: number
+  y: number
+  width: number
+  height: number
+  visible: boolean
+}
+
+export interface Scene {
+  id: string
+  name: string
+  /** Back of array renders on top. */
+  layers: SceneLayer[]
+}
+
 export type OutputKind = 'decklink' | 'stream' | 'stage-display'
 
 export interface MatrixOutput {
   id: string
   name: string
   kind: OutputKind
-  /** id of the Source currently routed to this output, or null if unrouted. */
+  /** id of a Source or a Scene currently routed to this output, or null if unrouted. */
   routedSourceId: string | null
 }
 
@@ -37,14 +59,6 @@ export interface PresenterNote {
   slideIndex: number
   text: string
   receivedAt: number
-}
-
-export interface SlideDeckState {
-  clientId: string
-  clientName: string
-  totalSlides: number
-  currentSlideIndex: number
-  notesBySlide: Record<number, string>
 }
 
 export interface ClientNode {
@@ -56,10 +70,26 @@ export interface ClientNode {
   lastSeen: number
 }
 
+export interface BroadcastMessage {
+  text: string
+  sentAt: number
+}
+
+export interface OrchestratorState {
+  sources: Source[]
+  scenes: Scene[]
+  outputs: MatrixOutput[]
+  clients: ClientNode[]
+  notes: Record<string, PresenterNote[]>
+  activeSlideIndex: Record<string, number>
+  broadcastMessage: BroadcastMessage | null
+}
+
 /** Automation API surface exposed over OSC + JSON-RPC for Companion/Stream Deck control. */
 export type AutomationCommand =
-  | { type: 'route'; outputId: string; sourceId: string }
-  | { type: 'recall-preset'; presetId: string }
+  | { type: 'route'; outputId: string; sourceId: string | null }
+  | { type: 'blackout'; outputId: string }
+  | { type: 'recall-preset'; outputId: string; sceneId: string }
   | { type: 'send-note'; message: string }
   | { type: 'next-slide'; clientId: string }
   | { type: 'previous-slide'; clientId: string }

@@ -5,24 +5,12 @@ import type { AutomationCommand } from '../../shared/types'
 /**
  * JSON-RPC control surface for Bitfocus Companion / Stream Deck. Listens
  * on a local-only port so a Companion module can POST commands without
- * going through the renderer. OSC transport (dgram + node-osc) can sit
- * alongside this on its own port later — kept out for now since nothing
- * in the current UI exercises it yet.
+ * going through the renderer. Shares executeCommand with the in-app
+ * Control Surface panel so both paths stay behaviorally identical. OSC
+ * transport (dgram + node-osc) can sit alongside this on its own port
+ * later — kept out for now since nothing exercises it yet.
  */
 const PORT = 9700
-
-function execute(command: AutomationCommand): void {
-  switch (command.type) {
-    case 'route':
-      ndiMatrix.route(command.outputId, command.sourceId)
-      return
-    case 'recall-preset':
-    case 'send-note':
-    case 'next-slide':
-    case 'previous-slide':
-      throw new Error(`Command not yet implemented: ${command.type}`)
-  }
-}
 
 let server: Server | null = null
 
@@ -37,7 +25,7 @@ export function startAutomationApi(): void {
     req.on('end', () => {
       try {
         const command = JSON.parse(body) as AutomationCommand
-        execute(command)
+        ndiMatrix.executeCommand(command)
         res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ ok: true }))
       } catch (error) {
         res

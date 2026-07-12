@@ -1,9 +1,10 @@
-import type { MatrixOutput, Source } from '../../../shared/types'
+import type { MatrixOutput, Scene, Source } from '../../../shared/types'
 
 interface Props {
   outputs: MatrixOutput[]
   sources: Source[]
-  onRoute: (outputId: string, sourceId: string | null) => void
+  scenes: Scene[]
+  onRoute: (outputId: string, routedId: string | null) => void
 }
 
 const kindLabel: Record<MatrixOutput['kind'], string> = {
@@ -12,7 +13,7 @@ const kindLabel: Record<MatrixOutput['kind'], string> = {
   'stage-display': 'Stage Display'
 }
 
-function MatrixInspector({ outputs, sources, onRoute }: Props): React.JSX.Element {
+function MatrixInspector({ outputs, sources, scenes, onRoute }: Props): React.JSX.Element {
   return (
     <div className="pane matrix-inspector">
       <div className="panel-heading">Matrix Inspector</div>
@@ -28,11 +29,20 @@ function MatrixInspector({ outputs, sources, onRoute }: Props): React.JSX.Elemen
               onChange={(e) => onRoute(output.id, e.target.value || null)}
             >
               <option value="">— Unrouted —</option>
-              {sources.map((source) => (
-                <option key={source.id} value={source.id}>
-                  {source.name}
-                </option>
-              ))}
+              <optgroup label="Scenes">
+                {scenes.map((scene) => (
+                  <option key={scene.id} value={scene.id}>
+                    {scene.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Sources">
+                {sources.map((source) => (
+                  <option key={source.id} value={source.id}>
+                    {source.name}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </li>
         ))}

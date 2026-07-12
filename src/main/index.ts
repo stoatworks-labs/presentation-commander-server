@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { ndiMatrix } from './services/ndiMatrix'
 import { startAutomationApi, stopAutomationApi } from './services/automationApi'
+import type { AutomationCommand, NewSourceInput, Source, SceneLayer } from '../shared/types'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -49,8 +50,35 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('matrix:get-state', () => ndiMatrix.getState())
-  ipcMain.handle('matrix:route', (_event, outputId: string, sourceId: string | null) =>
+  ipcMain.handle('matrix:route', (_e, outputId: string, sourceId: string | null) =>
     ndiMatrix.route(outputId, sourceId)
+  )
+  ipcMain.handle('automation:execute', (_e, command: AutomationCommand) =>
+    ndiMatrix.executeCommand(command)
+  )
+
+  ipcMain.handle('sources:add', (_e, input: NewSourceInput) => ndiMatrix.addSource(input))
+  ipcMain.handle('sources:update', (_e, id: string, patch: Partial<Omit<Source, 'kind' | 'id'>>) =>
+    ndiMatrix.updateSource(id, patch)
+  )
+  ipcMain.handle('sources:remove', (_e, id: string) => ndiMatrix.removeSource(id))
+
+  ipcMain.handle('scenes:add', (_e, name: string) => ndiMatrix.addScene(name))
+  ipcMain.handle('scenes:rename', (_e, id: string, name: string) => ndiMatrix.renameScene(id, name))
+  ipcMain.handle('scenes:remove', (_e, id: string) => ndiMatrix.removeScene(id))
+  ipcMain.handle('scenes:layer:add', (_e, sceneId: string, sourceId: string) =>
+    ndiMatrix.addLayer(sceneId, sourceId)
+  )
+  ipcMain.handle(
+    'scenes:layer:update',
+    (_e, sceneId: string, layerId: string, patch: Partial<Omit<SceneLayer, 'id' | 'sourceId'>>) =>
+      ndiMatrix.updateLayer(sceneId, layerId, patch)
+  )
+  ipcMain.handle('scenes:layer:front', (_e, sceneId: string, layerId: string) =>
+    ndiMatrix.bringLayerToFront(sceneId, layerId)
+  )
+  ipcMain.handle('scenes:layer:remove', (_e, sceneId: string, layerId: string) =>
+    ndiMatrix.removeLayer(sceneId, layerId)
   )
 
   startAutomationApi()

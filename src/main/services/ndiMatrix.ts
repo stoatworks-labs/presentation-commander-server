@@ -1,12 +1,24 @@
+import { randomUUID } from 'crypto'
 import { EventEmitter } from 'events'
-import type { ClientNode, MatrixOutput, PresenterNote, Source } from '../../shared/types'
+import type {
+  AutomationCommand,
+  BroadcastMessage,
+  ClientNode,
+  MatrixOutput,
+  NewSourceInput,
+  OrchestratorState,
+  PresenterNote,
+  Scene,
+  SceneLayer,
+  Source
+} from '../../shared/types'
 
 /**
  * Central router state. Backed by mock data until the native NDI SDK
  * bindings (grandiose / NDI Advanced SDK) and OS-level DeckLink drivers
- * are wired in. The public interface (getState/route/*) is what the rest
- * of the app depends on, so swapping the mock for real NDI discovery
- * later shouldn't require touching callers.
+ * are wired in. The public interface (getState/executeCommand/CRUD
+ * methods) is what the rest of the app depends on, so swapping the mock
+ * for real NDI discovery later shouldn't require touching callers.
  */
 class NdiMatrixService extends EventEmitter {
   private sources: Source[] = [
@@ -50,12 +62,30 @@ class NdiMatrixService extends EventEmitter {
     }
   ]
 
+  private scenes: Scene[] = [
+    {
+      id: 'scene-main',
+      name: 'Main Program',
+      layers: [
+        { id: 'layer-1', sourceId: 'ndi-1', x: 0, y: 0, width: 100, height: 100, visible: true },
+        { id: 'layer-2', sourceId: 'web-1', x: 68, y: 68, width: 28, height: 28, visible: true }
+      ]
+    },
+    {
+      id: 'scene-cam-only',
+      name: 'Speaker Only',
+      layers: [
+        { id: 'layer-3', sourceId: 'ndi-2', x: 0, y: 0, width: 100, height: 100, visible: true }
+      ]
+    }
+  ]
+
   private outputs: MatrixOutput[] = [
     {
       id: 'out-decklink-1',
       name: 'DeckLink 1 — Program',
       kind: 'decklink',
-      routedSourceId: 'ndi-1'
+      routedSourceId: 'scene-main'
     },
     {
       id: 'out-decklink-2',
@@ -98,28 +128,183 @@ class NdiMatrixService extends EventEmitter {
     ]
   }
 
-  getState(): {
-    sources: Source[]
-    outputs: MatrixOutput[]
-    clients: ClientNode[]
-    notes: Record<string, PresenterNote[]>
-  } {
+  private activeSlideIndex: Record<string, number> = { 'client-1': 1 }
+
+  private broadcastMessage: BroadcastMessage | null = null
+
+  getState(): OrchestratorState {
     return {
       sources: this.sources,
+      scenes: this.scenes,
       outputs: this.outputs,
       clients: this.clients,
-      notes: this.notes
+      notes: this.notes,
+      activeSlideIndex: this.activeSlideIndex,
+      broadcastMessage: this.broadcastMessage
     }
   }
 
-  route(outputId: string, sourceId: string | null): void {
+  private publish(): void {
+    this.emit('state-changed', this.getState())
+  }
+
+  // --- Sources -------------------------------------------------------
+
+  addSource(input: NewSourceInput): Source {
+    const id = `${input.kind}-${randomUUID().slice(0, 8)}`
+    const source: Source =
+      input.kind === 'ndi'
+        ? {
+            kind: 'ndi',
+            id,
+            name: input.name,
+            machineName: input.machineName,
+            frameRate: null,
+            connected: false
+          }
+        : { kind: 'web', id, name: input.name, url: input.url, transparent: input.transparent }
+    this.sources.push(source)
+    this.publish()
+    return source
+  }
+
+  updateSource(id: string, patch: Partial<Omit<Source, 'kind' | 'id'>>): void {
+    const source = this.sources.find((s) => s.id === id)
+    if (!source) throw new Error(`Unknown source: ${id}`)
+    Object.assign(source, patch)
+    this.publish()
+  }
+
+  removeSource(id: string): void {
+    this.sources = this.sources.filter((s) => s.id !== id)
+    for (const output of this.outputs) {
+      if (output.routedSourceId === id) output.routedSourceId = null
+    }
+    for (const scene of this.scenes) {
+      scene.layers = scene.layers.filter((layer) => layer.sourceId !== id)
+    }
+    this.publish()
+  }
+
+  // --- Scenes ----------------------------------------------------------
+
+  addScene(name: string): Scene {
+    const scene: Scene = { id: `scene-${randomUUID().slice(0, 8)}`, name, layers: [] }
+    this.scenes.push(scene)
+    this.publish()
+    return scene
+  }
+
+  renameScene(id: string, name: string): void {
+    const scene = this.getScene(id)
+    scene.name = name
+    this.publish()
+  }
+
+  removeScene(id: string): void {
+    this.scenes = this.scenes.filter((s) => s.id !== id)
+    for (const output of this.outputs) {
+      if (output.routedSourceId === id) output.routedSourceId = null
+    }
+    this.publish()
+  }
+
+  addLayer(sceneId: string, sourceId: string): SceneLayer {
+    const scene = this.getScene(sceneId)
+    if (!this.sources.some((s) => s.id === sourceId)) throw new Error(`Unknown source: ${sourceId}`)
+    const layer: SceneLayer = {
+      id: `layer-${randomUUID().slice(0, 8)}`,
+      sourceId,
+      x: 10,
+      y: 10,
+      width: 40,
+      height: 40,
+      visible: true
+    }
+    scene.layers.push(layer)
+    this.publish()
+    return layer
+  }
+
+  updateLayer(
+    sceneId: string,
+    layerId: string,
+    patch: Partial<Omit<SceneLayer, 'id' | 'sourceId'>>
+  ): void {
+    const scene = this.getScene(sceneId)
+    const layer = scene.layers.find((l) => l.id === layerId)
+    if (!layer) throw new Error(`Unknown layer: ${layerId}`)
+    Object.assign(layer, patch)
+    this.publish()
+  }
+
+  bringLayerToFront(sceneId: string, layerId: string): void {
+    const scene = this.getScene(sceneId)
+    const index = scene.layers.findIndex((l) => l.id === layerId)
+    if (index === -1) throw new Error(`Unknown layer: ${layerId}`)
+    const [layer] = scene.layers.splice(index, 1)
+    scene.layers.push(layer)
+    this.publish()
+  }
+
+  removeLayer(sceneId: string, layerId: string): void {
+    const scene = this.getScene(sceneId)
+    scene.layers = scene.layers.filter((l) => l.id !== layerId)
+    this.publish()
+  }
+
+  private getScene(id: string): Scene {
+    const scene = this.scenes.find((s) => s.id === id)
+    if (!scene) throw new Error(`Unknown scene: ${id}`)
+    return scene
+  }
+
+  // --- Routing & automation --------------------------------------------
+
+  route(outputId: string, routedId: string | null): void {
     const output = this.outputs.find((o) => o.id === outputId)
     if (!output) throw new Error(`Unknown output: ${outputId}`)
-    if (sourceId && !this.sources.some((s) => s.id === sourceId)) {
-      throw new Error(`Unknown source: ${sourceId}`)
+    if (
+      routedId &&
+      !this.sources.some((s) => s.id === routedId) &&
+      !this.scenes.some((s) => s.id === routedId)
+    ) {
+      throw new Error(`Unknown source or scene: ${routedId}`)
     }
-    output.routedSourceId = sourceId
-    this.emit('state-changed', this.getState())
+    output.routedSourceId = routedId
+    this.publish()
+  }
+
+  executeCommand(command: AutomationCommand): void {
+    switch (command.type) {
+      case 'route':
+        this.route(command.outputId, command.sourceId)
+        return
+      case 'blackout':
+        this.route(command.outputId, null)
+        return
+      case 'recall-preset':
+        this.route(command.outputId, command.sceneId)
+        return
+      case 'send-note':
+        this.broadcastMessage = { text: command.message, sentAt: Date.now() }
+        this.publish()
+        return
+      case 'next-slide':
+      case 'previous-slide': {
+        const slides = (this.notes[command.clientId] ?? [])
+          .map((n) => n.slideIndex)
+          .sort((a, b) => a - b)
+        if (slides.length === 0) return
+        const current = this.activeSlideIndex[command.clientId] ?? slides[0]
+        const currentPos = slides.indexOf(current)
+        const delta = command.type === 'next-slide' ? 1 : -1
+        const nextPos = Math.min(Math.max(currentPos + delta, 0), slides.length - 1)
+        this.activeSlideIndex[command.clientId] = slides[nextPos]
+        this.publish()
+        return
+      }
+    }
   }
 }
 
