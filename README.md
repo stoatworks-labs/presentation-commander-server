@@ -1,5 +1,10 @@
 # Presentation Commander — Server
 
+> **AI-assisted project.** This codebase was built with the help of
+> [Claude](https://claude.ai), Anthropic's AI assistant — including
+> architecture, implementation, and documentation. Review it accordingly
+> before relying on it in production.
+
 The master control application for live event production: an NDI-style matrix
 router, OBS-style scene compositor, and presenter-notes hub, built as an
 Electron + React + TypeScript desktop app.
