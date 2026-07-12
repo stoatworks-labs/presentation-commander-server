@@ -1,34 +1,64 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { useEffect, useState } from 'react'
+import type { ClientNode, MatrixOutput, PresenterNote, Source } from '../../shared/types'
+import './App.css'
+import SourcePool from './components/SourcePool'
+import Viewer from './components/Viewer'
+import MatrixInspector from './components/MatrixInspector'
+import ControlDeck from './components/ControlDeck'
+
+interface MatrixState {
+  sources: Source[]
+  outputs: MatrixOutput[]
+  clients: ClientNode[]
+  notes: Record<string, PresenterNote[]>
+}
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [state, setState] = useState<MatrixState | null>(null)
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
+  const [activeClientId, setActiveClientId] = useState<string | null>(null)
+
+  useEffect(() => {
+    window.api.matrix.getState().then((initial: MatrixState) => {
+      setState(initial)
+      setActiveClientId(initial.clients[0]?.id ?? null)
+    })
+    return window.api.matrix.onStateChanged((next) => setState(next as MatrixState))
+  }, [])
+
+  if (!state) {
+    return (
+      <div className="app-shell loading">
+        <span>Connecting to Orchestrator…</span>
+      </div>
+    )
+  }
+
+  const activeSource = state.sources.find((s) => s.id === selectedSourceId) ?? null
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
+    <div className="app-shell">
+      <div className="app-titlebar">LiveMaster Orchestrator</div>
+      <div className="app-grid">
+        <SourcePool
+          sources={state.sources}
+          selectedId={selectedSourceId}
+          onSelect={setSelectedSourceId}
+        />
+        <Viewer activeSource={activeSource} />
+        <MatrixInspector
+          outputs={state.outputs}
+          sources={state.sources}
+          onRoute={(outputId, sourceId) => window.api.matrix.route(outputId, sourceId)}
+        />
+        <ControlDeck
+          clients={state.clients}
+          notes={state.notes}
+          activeClientId={activeClientId}
+          onSelectClient={setActiveClientId}
+        />
       </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
+    </div>
   )
 }
 
