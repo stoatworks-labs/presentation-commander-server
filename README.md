@@ -12,6 +12,8 @@ Electron + React + TypeScript desktop app.
 Pairs with [presentation-commander-client](https://github.com/allansargeant/presentation-commander-client),
 the companion app that runs on each presentation laptop.
 
+![Presentation Commander Server main window: scene compositor, source pool, matrix inspector, control deck, and control surface](docs/screenshot.png)
+
 ## What it does
 
 - **Source Pool** — add/edit/delete NDI and web sources, or pick a real NDI
