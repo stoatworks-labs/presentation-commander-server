@@ -9,8 +9,19 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!native/*/vendor-sdk'
+  - '!native/*/src'
+  - '!native/*/scripts'
+  - '!native/*/binding.gyp'
+  - '!native/*/build/Release/obj.target'
+  - '!native/*/build/Release/.deps'
+  - '!native/*/build/Makefile'
+  - '!native/*/build/binding.Makefile'
+  - '!native/*/build/config.gypi'
 asarUnpack:
   - resources/**
+  - '**/*.node'
+  - '**/*.dll'
 win:
   executableName: presentation-commander-server
 nsis:

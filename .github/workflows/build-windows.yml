@@ -1,0 +1,61 @@
+name: Build Windows
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  NDI_SDK_DIR: C:\Program Files\NDI\NDI 6 SDK
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download NDI SDK for Windows
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://downloads.ndi.tv/SDK/NDI_SDK/NDI%206%20SDK.exe" -OutFile "$env:RUNNER_TEMP\ndi-sdk-installer.exe"
+
+      - name: Install NDI SDK silently
+        shell: pwsh
+        run: |
+          Start-Process -FilePath "$env:RUNNER_TEMP\ndi-sdk-installer.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$env:NDI_SDK_DIR" -Wait
+          if (-not (Test-Path "$env:NDI_SDK_DIR\Include\Processing.NDI.Lib.h")) {
+            throw "NDI SDK install did not land at $env:NDI_SDK_DIR"
+          }
+
+      - name: Install dependencies (rebuilds native addon against Electron ABI)
+        run: npm ci
+
+      - name: Bundle NDI runtime DLL next to the native addon
+        shell: pwsh
+        run: |
+          Copy-Item "$env:NDI_SDK_DIR\Bin\x64\Processing.NDI.Lib.x64.dll" -Destination "native\ndi-receive\build\Release\Processing.NDI.Lib.x64.dll"
+
+      - name: Build Windows installer
+        run: npm run build:win
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: presentation-commander-server-windows
+          path: dist/*.exe
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('windows-build-{0}', github.run_number) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Windows Build #{0}', github.run_number) }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          files: dist/*.exe

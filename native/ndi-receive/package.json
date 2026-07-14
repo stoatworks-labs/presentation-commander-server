@@ -5,6 +5,11 @@
   "description": "Native addon wrapping the NDI SDK's receive API for live source preview",
   "main": "index.js",
   "gypfile": true,
+  "files": [
+    "build/Release/*.node",
+    "index.js",
+    "index.d.ts"
+  ],
   "dependencies": {
     "node-addon-api": "^8.9.0"
   }
