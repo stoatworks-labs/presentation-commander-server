@@ -6,7 +6,7 @@
 > before relying on it in production.
 
 The master control application for live event production: an NDI-style matrix
-router, OBS-style scene compositor, and presenter-notes hub, built as an
+router, layered scene compositor, and presenter-notes hub, built as an
 Electron + React + TypeScript desktop app.
 
 Pairs with [presentation-commander-client](https://github.com/allansargeant/presentation-commander-client),
@@ -18,7 +18,7 @@ the companion app that runs on each presentation laptop.
 
 - **Source Pool** — add/edit/delete NDI and web sources, or pick a real NDI
   sender discovered live on the network (mDNS `_ndi._tcp.local`)
-- **Scenes** — OBS-style compositor: build scenes from multiple layered
+- **Scenes** — layered scene compositor: build scenes from multiple layered
   sources, drag to reposition, drag a corner to resize, toggle visibility.
   Layers backed by a real network source show a **live video preview**
   rendered from actual received NDI frames, not a placeholder box
@@ -26,7 +26,7 @@ the companion app that runs on each presentation laptop.
   or a full composited scene
 - **Control Deck** — live presenter notes and slide position per connected
   Client Node
-- **Control Surface** — touchOSC-style button grid: scene recall, blackout,
+- **Control Surface** — a button-grid control surface: scene recall, blackout,
   next/previous slide, send-note-to-stage — all backed by the same command
   path used by the JSON-RPC automation API (`:9700`) for Bitfocus
   Companion/Stream Deck integration
