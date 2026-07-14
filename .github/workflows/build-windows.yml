@@ -15,6 +15,7 @@ env:
 jobs:
   build-windows:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -26,22 +27,29 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://downloads.ndi.tv/SDK/NDI_SDK/NDI%206%20SDK.exe" -OutFile "$env:RUNNER_TEMP\ndi-sdk-installer.exe"
+          # Files downloaded via Invoke-WebRequest carry the Mark-of-the-Web
+          # zone identifier, which makes Windows show a SmartScreen prompt
+          # on launch — a modal with no one to click it in CI, so the next
+          # step would hang forever without this.
+          Unblock-File -Path "$env:RUNNER_TEMP\ndi-sdk-installer.exe"
 
       - name: Install NDI SDK silently
         shell: pwsh
+        timeout-minutes: 10
         run: |
           Start-Process -FilePath "$env:RUNNER_TEMP\ndi-sdk-installer.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$env:NDI_SDK_DIR" -Wait
           if (-not (Test-Path "$env:NDI_SDK_DIR\Include\Processing.NDI.Lib.h")) {
             throw "NDI SDK install did not land at $env:NDI_SDK_DIR"
           }
 
-      - name: Install dependencies (rebuilds native addon against Electron ABI)
+      - name: Install dependencies (rebuilds native addons against Electron ABI)
         run: npm ci
 
-      - name: Bundle NDI runtime DLL next to the native addon
+      - name: Bundle NDI runtime DLL next to the native addons
         shell: pwsh
         run: |
           Copy-Item "$env:NDI_SDK_DIR\Bin\x64\Processing.NDI.Lib.x64.dll" -Destination "native\ndi-receive\build\Release\Processing.NDI.Lib.x64.dll"
+          Copy-Item "$env:NDI_SDK_DIR\Bin\x64\Processing.NDI.Lib.x64.dll" -Destination "native\ndi-send\build\Release\Processing.NDI.Lib.x64.dll"
 
       - name: Build Windows installer
         run: npm run build:win
