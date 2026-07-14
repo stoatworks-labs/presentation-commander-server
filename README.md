@@ -5,9 +5,9 @@
 > architecture, implementation, and documentation. Review it accordingly
 > before relying on it in production.
 
-The master control application for live event production: an NDI-style matrix
-router, layered scene compositor, and presenter-notes hub, built as an
-Electron + React + TypeScript desktop app.
+The master control application for live event production: a real-time NDI
+video matrix router, layered scene compositor, and presenter-notes hub,
+built as an Electron + React + TypeScript desktop app.
 
 Pairs with [presentation-commander-client](https://github.com/allansargeant/presentation-commander-client),
 the companion app that runs on each presentation laptop.
