@@ -7,6 +7,7 @@ import { startAutomationApi, stopAutomationApi } from './services/automationApi'
 import { startClientHub, stopClientHub } from './services/clientHub'
 import { ndiDiscovery } from './services/ndiDiscovery'
 import { ndiPreviewService } from './services/ndiPreview'
+import { ndiOutputSenderService } from './services/ndiOutputSender'
 import type { AutomationCommand, NewSourceInput, Source, SceneLayer } from '../shared/types'
 
 function createWindow(): void {
@@ -99,6 +100,23 @@ app.whenReady().then(() => {
   )
   ipcMain.handle('ndi-preview:stop', (_e, sourceId: string) => ndiPreviewService.stop(sourceId))
 
+  ipcMain.handle('ndi-output:toggle', (_e, name: string) => {
+    if (ndiOutputSenderService.isActive()) {
+      ndiOutputSenderService.stop()
+    } else {
+      ndiOutputSenderService.start(name)
+    }
+    return ndiOutputSenderService.isActive()
+  })
+  ipcMain.handle('ndi-output:is-active', () => ndiOutputSenderService.isActive())
+  ipcMain.handle('ndi-output:push-frame', (_e, data: Uint8Array, width: number, height: number) => {
+    ndiOutputSenderService.sendFrame(
+      Buffer.from(data.buffer, data.byteOffset, data.byteLength),
+      width,
+      height
+    )
+  })
+
   startAutomationApi()
   startClientHub()
   ndiDiscovery.start()
@@ -115,6 +133,7 @@ app.on('window-all-closed', () => {
   stopClientHub()
   ndiDiscovery.stop()
   ndiPreviewService.stopAll()
+  ndiOutputSenderService.stop()
   if (process.platform !== 'darwin') {
     app.quit()
   }

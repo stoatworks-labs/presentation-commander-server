@@ -82,6 +82,12 @@ const api = {
         ipcRenderer.removeListener('ndi-preview:frame', listener)
       }
     }
+  },
+  ndiOutput: {
+    toggle: (name: string): Promise<boolean> => ipcRenderer.invoke('ndi-output:toggle', name),
+    isActive: (): Promise<boolean> => ipcRenderer.invoke('ndi-output:is-active'),
+    pushFrame: (data: Uint8Array, width: number, height: number): Promise<void> =>
+      ipcRenderer.invoke('ndi-output:push-frame', data, width, height)
   }
 }
 

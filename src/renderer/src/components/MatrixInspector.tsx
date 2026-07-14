@@ -1,9 +1,12 @@
 import type { MatrixOutput, Scene, Source } from '../../../shared/types'
+import NdiOutputControl from './NdiOutputControl'
 
 interface Props {
   outputs: MatrixOutput[]
   sources: Source[]
   scenes: Scene[]
+  ndiOutputActive: boolean
+  onToggleNdiOutput: () => void
   onRoute: (outputId: string, routedId: string | null) => void
 }
 
@@ -13,7 +16,14 @@ const kindLabel: Record<MatrixOutput['kind'], string> = {
   'stage-display': 'Stage Display'
 }
 
-function MatrixInspector({ outputs, sources, scenes, onRoute }: Props): React.JSX.Element {
+function MatrixInspector({
+  outputs,
+  sources,
+  scenes,
+  ndiOutputActive,
+  onToggleNdiOutput,
+  onRoute
+}: Props): React.JSX.Element {
   return (
     <div className="pane matrix-inspector">
       <div className="panel-heading">Matrix Inspector</div>
@@ -44,6 +54,13 @@ function MatrixInspector({ outputs, sources, scenes, onRoute }: Props): React.JS
                 ))}
               </optgroup>
             </select>
+            {output.kind === 'stage-display' && (
+              <NdiOutputControl
+                disabled={!output.routedSourceId}
+                active={ndiOutputActive}
+                onToggle={onToggleNdiOutput}
+              />
+            )}
           </li>
         ))}
       </ul>

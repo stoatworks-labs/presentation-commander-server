@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import type { DiscoveredNdiSource, NewSourceInput, Source } from '../../../shared/types'
+import type { ClientNode, DiscoveredNdiSource, NewSourceInput, Source } from '../../../shared/types'
 
 interface Props {
   sources: Source[]
   discoveredSources: DiscoveredNdiSource[]
+  clients: ClientNode[]
   selectedId: string | null
   editingSceneName: string | null
   onSelect: (id: string) => void
@@ -17,9 +18,23 @@ function emptyForm(): NewSourceInput {
   return { kind: 'ndi', name: '', machineName: '' }
 }
 
+function sourceSubtitle(source: Source, clients: ClientNode[]): string {
+  if (source.kind === 'ndi') return `NDI · ${source.machineName}`
+  if (source.kind === 'web') return 'Web Source'
+  const client = clients.find((c) => c.id === source.clientId)
+  return client ? `Presenter Notes · ${client.name}` : 'Presenter Notes · disconnected'
+}
+
+function isSourceOnline(source: Source, clients: ClientNode[]): boolean {
+  if (source.kind === 'web') return true
+  if (source.kind === 'notes') return clients.some((c) => c.id === source.clientId && c.online)
+  return source.connected
+}
+
 function SourcePool({
   sources,
   discoveredSources,
+  clients,
   selectedId,
   editingSceneName,
   onSelect,
@@ -66,16 +81,19 @@ function SourcePool({
           <select
             value={form.kind}
             onChange={(e) => {
-              const kind = e.target.value as 'ndi' | 'web'
+              const kind = e.target.value as 'ndi' | 'web' | 'notes'
               setForm(
                 kind === 'ndi'
                   ? { kind: 'ndi', name: form.name, machineName: '' }
-                  : { kind: 'web', name: form.name, url: '', transparent: true }
+                  : kind === 'web'
+                    ? { kind: 'web', name: form.name, url: '', transparent: true }
+                    : { kind: 'notes', name: form.name, clientId: clients[0]?.id ?? '' }
               )
             }}
           >
             <option value="ndi">NDI</option>
             <option value="web">Web</option>
+            <option value="notes">Presenter Notes</option>
           </select>
           <input
             placeholder="Name"
@@ -115,7 +133,7 @@ function SourcePool({
                 onChange={(e) => setForm({ ...form, machineName: e.target.value, port: undefined })}
               />
             </>
-          ) : (
+          ) : form.kind === 'web' ? (
             <>
               <input
                 placeholder="URL"
@@ -131,6 +149,22 @@ function SourcePool({
                 Transparent
               </label>
             </>
+          ) : (
+            <select
+              value={form.clientId}
+              onChange={(e) => setForm({ ...form, clientId: e.target.value })}
+            >
+              {clients.length === 0 && (
+                <option value="" disabled>
+                  No connected clients yet
+                </option>
+              )}
+              {clients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name} ({client.app})
+                </option>
+              ))}
+            </select>
           )}
           <div className="inline-form-actions">
             <button className="transport-btn" onClick={submitAdd}>
@@ -152,7 +186,7 @@ function SourcePool({
             onDoubleClick={() => onAddToScene(source.id)}
           >
             <span
-              className={`status-dot ${source.kind === 'web' || source.connected ? 'online' : 'offline'}`}
+              className={`status-dot ${isSourceOnline(source, clients) ? 'online' : 'offline'}`}
             />
             <div className="source-meta">
               {editingId === source.id ? (
@@ -168,9 +202,7 @@ function SourcePool({
               ) : (
                 <>
                   <div className="source-name">{source.name}</div>
-                  <div className="source-sub">
-                    {source.kind === 'ndi' ? `NDI · ${source.machineName}` : 'Web Source'}
-                  </div>
+                  <div className="source-sub">{sourceSubtitle(source, clients)}</div>
                 </>
               )}
             </div>

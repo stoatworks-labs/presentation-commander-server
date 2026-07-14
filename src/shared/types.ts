@@ -1,6 +1,6 @@
 // Domain types shared across main, preload, and renderer processes.
 
-export type SourceKind = 'ndi' | 'web'
+export type SourceKind = 'ndi' | 'web' | 'notes'
 
 export interface NdiSource {
   kind: 'ndi'
@@ -24,11 +24,20 @@ export interface WebSource {
   transparent: boolean
 }
 
-export type Source = NdiSource | WebSource
+/** Renders a connected Client Node's live current-slide presenter note as a text layer. */
+export interface NotesSource {
+  kind: 'notes'
+  id: string
+  name: string
+  clientId: string
+}
+
+export type Source = NdiSource | WebSource | NotesSource
 
 export type NewSourceInput =
   | { kind: 'ndi'; name: string; machineName: string; port?: number }
   | { kind: 'web'; name: string; url: string; transparent: boolean }
+  | { kind: 'notes'; name: string; clientId: string }
 
 /** A real NDI sender found on the network via mDNS (_ndi._tcp.local). */
 export interface DiscoveredNdiSource {

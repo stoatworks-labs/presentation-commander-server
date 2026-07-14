@@ -13,6 +13,7 @@ import Viewer from './components/Viewer'
 import MatrixInspector from './components/MatrixInspector'
 import ControlDeck from './components/ControlDeck'
 import ControlSurface from './components/ControlSurface'
+import StageDisplayCompositor from './components/StageDisplayCompositor'
 
 function App(): React.JSX.Element {
   const [state, setState] = useState<OrchestratorState | null>(null)
@@ -21,6 +22,11 @@ function App(): React.JSX.Element {
   const [activeClientId, setActiveClientId] = useState<string | null>(null)
   const [dismissedMessageAt, setDismissedMessageAt] = useState<number | null>(null)
   const [discoveredSources, setDiscoveredSources] = useState<DiscoveredNdiSource[]>([])
+  const [ndiOutputActive, setNdiOutputActive] = useState(false)
+
+  useEffect(() => {
+    window.api.ndiOutput.isActive().then(setNdiOutputActive)
+  }, [])
 
   useEffect(() => {
     window.api.matrix.getState().then((initial) => {
@@ -72,9 +78,28 @@ function App(): React.JSX.Element {
   const execute = (command: AutomationCommand): void => {
     window.api.automation.execute(command)
   }
+  const toggleNdiOutput = async (): Promise<void> => {
+    try {
+      const nowActive = await window.api.ndiOutput.toggle(
+        'Presentation Commander (Confidence Monitor)'
+      )
+      setNdiOutputActive(nowActive)
+    } catch (err) {
+      console.error('Failed to toggle Confidence Monitor NDI output', err)
+    }
+  }
 
   return (
     <div className="app-shell">
+      <StageDisplayCompositor
+        outputs={state.outputs}
+        scenes={state.scenes}
+        sources={state.sources}
+        clients={state.clients}
+        notes={state.notes}
+        activeSlideIndex={state.activeSlideIndex}
+        active={ndiOutputActive}
+      />
       <div className="app-titlebar">Presentation Commander</div>
       <div className="app-grid">
         <div className="left-column">
@@ -89,6 +114,7 @@ function App(): React.JSX.Element {
           <SourcePool
             sources={state.sources}
             discoveredSources={discoveredSources}
+            clients={state.clients}
             selectedId={selectedSourceId}
             editingSceneName={editingScene?.name ?? null}
             onSelect={setSelectedSourceId}
@@ -120,6 +146,8 @@ function App(): React.JSX.Element {
           outputs={state.outputs}
           sources={state.sources}
           scenes={state.scenes}
+          ndiOutputActive={ndiOutputActive}
+          onToggleNdiOutput={toggleNdiOutput}
           onRoute={(outputId, routedId) => window.api.matrix.route(outputId, routedId)}
         />
         <ControlDeck

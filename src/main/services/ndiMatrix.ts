@@ -158,18 +158,22 @@ class NdiMatrixService extends EventEmitter {
 
   addSource(input: NewSourceInput): Source {
     const id = `${input.kind}-${randomUUID().slice(0, 8)}`
-    const source: Source =
-      input.kind === 'ndi'
-        ? {
-            kind: 'ndi',
-            id,
-            name: input.name,
-            machineName: input.machineName,
-            frameRate: null,
-            connected: input.port !== undefined,
-            port: input.port
-          }
-        : { kind: 'web', id, name: input.name, url: input.url, transparent: input.transparent }
+    let source: Source
+    if (input.kind === 'ndi') {
+      source = {
+        kind: 'ndi',
+        id,
+        name: input.name,
+        machineName: input.machineName,
+        frameRate: null,
+        connected: input.port !== undefined,
+        port: input.port
+      }
+    } else if (input.kind === 'web') {
+      source = { kind: 'web', id, name: input.name, url: input.url, transparent: input.transparent }
+    } else {
+      source = { kind: 'notes', id, name: input.name, clientId: input.clientId }
+    }
     this.sources.push(source)
     this.publish()
     return source

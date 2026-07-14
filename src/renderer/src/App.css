@@ -362,6 +362,17 @@
   border-color: var(--accent);
 }
 
+.transport-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.transport-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1006;
+}
+
 /* Matrix Inspector */
 
 .output-list {

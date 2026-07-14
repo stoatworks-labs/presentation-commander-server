@@ -25,6 +25,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "bonjour-service": "^1.4.3",
     "ndi-receive": "file:./native/ndi-receive",
+    "ndi-send": "file:./native/ndi-send",
     "ws": "^8.21.0"
   },
   "devDependencies": {

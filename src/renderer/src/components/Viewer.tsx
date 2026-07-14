@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import type { NdiSource, Scene, SceneLayer, Source } from '../../../shared/types'
+import type { Scene, SceneLayer, Source } from '../../../shared/types'
+import { isLiveNdiSource, packFrame } from '../ndiFrames'
 
 interface Props {
   scene: Scene | null
@@ -24,13 +25,6 @@ const MIN_SIZE = 8
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
-}
-
-/** A source only has host+port when it was added via network discovery
- *  (or resolved from a live Client Node), which is what makes it eligible
- *  for a real NDI receive preview instead of a placeholder box. */
-function isLiveNdiSource(source: Source | undefined): source is NdiSource & { port: number } {
-  return !!source && source.kind === 'ndi' && source.port !== undefined
 }
 
 function Viewer({
@@ -85,21 +79,7 @@ function Viewer({
     return window.api.ndiPreview.onFrame((sourceId, frame) => {
       const canvases = previewCanvases.current.get(sourceId)
       if (!canvases) return
-      const rowBytes = frame.width * 4
-      const packed =
-        frame.strideBytes === rowBytes
-          ? frame.data
-          : (() => {
-              const out = new Uint8Array(rowBytes * frame.height)
-              for (let y = 0; y < frame.height; y++) {
-                out.set(
-                  frame.data.subarray(y * frame.strideBytes, y * frame.strideBytes + rowBytes),
-                  y * rowBytes
-                )
-              }
-              return out
-            })()
-      const imageData = new ImageData(new Uint8ClampedArray(packed), frame.width, frame.height)
+      const imageData = packFrame(frame)
       for (const canvas of canvases) {
         if (canvas.width !== frame.width) canvas.width = frame.width
         if (canvas.height !== frame.height) canvas.height = frame.height
