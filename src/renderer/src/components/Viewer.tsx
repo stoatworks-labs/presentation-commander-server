@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import type { Scene, SceneLayer, Source } from '../../../shared/types'
+import { useEffect, useRef, useState } from 'react'
+import type { NdiSource, Scene, SceneLayer, Source } from '../../../shared/types'
 
 interface Props {
   scene: Scene | null
@@ -26,6 +26,13 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
+/** A source only has host+port when it was added via network discovery
+ *  (or resolved from a live Client Node), which is what makes it eligible
+ *  for a real NDI receive preview instead of a placeholder box. */
+function isLiveNdiSource(source: Source | undefined): source is NdiSource & { port: number } {
+  return !!source && source.kind === 'ndi' && source.port !== undefined
+}
+
 function Viewer({
   scene,
   sources,
@@ -39,9 +46,67 @@ function Viewer({
   const [preview, setPreview] = useState<{ layerId: string; patch: Partial<SceneLayer> } | null>(
     null
   )
+  const previewCanvases = useRef(new Map<string, Set<HTMLCanvasElement>>())
 
-  const sourceName = (id: string): string =>
-    sources.find((s) => s.id === id)?.name ?? 'Unknown Source'
+  const sourceById = (id: string): Source | undefined => sources.find((s) => s.id === id)
+  const sourceName = (id: string): string => sourceById(id)?.name ?? 'Unknown Source'
+
+  const registerPreviewCanvas = (
+    sourceId: string,
+    el: HTMLCanvasElement | null
+  ): (() => void) | void => {
+    if (!el) return
+    if (!previewCanvases.current.has(sourceId)) previewCanvases.current.set(sourceId, new Set())
+    previewCanvases.current.get(sourceId)!.add(el)
+    return () => {
+      previewCanvases.current.get(sourceId)?.delete(el)
+    }
+  }
+
+  const liveSourceIds = (scene?.layers ?? [])
+    .map((l) => sourceById(l.sourceId))
+    .filter(isLiveNdiSource)
+    .map((s) => s.id)
+  const liveSourceKey = [...new Set(liveSourceIds)].sort().join(',')
+
+  useEffect(() => {
+    const ids = liveSourceKey ? liveSourceKey.split(',') : []
+    for (const id of ids) {
+      const source = sourceById(id)
+      if (isLiveNdiSource(source)) window.api.ndiPreview.start(id, source.machineName, source.port)
+    }
+    return () => {
+      for (const id of ids) window.api.ndiPreview.stop(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveSourceKey])
+
+  useEffect(() => {
+    return window.api.ndiPreview.onFrame((sourceId, frame) => {
+      const canvases = previewCanvases.current.get(sourceId)
+      if (!canvases) return
+      const rowBytes = frame.width * 4
+      const packed =
+        frame.strideBytes === rowBytes
+          ? frame.data
+          : (() => {
+              const out = new Uint8Array(rowBytes * frame.height)
+              for (let y = 0; y < frame.height; y++) {
+                out.set(
+                  frame.data.subarray(y * frame.strideBytes, y * frame.strideBytes + rowBytes),
+                  y * rowBytes
+                )
+              }
+              return out
+            })()
+      const imageData = new ImageData(new Uint8ClampedArray(packed), frame.width, frame.height)
+      for (const canvas of canvases) {
+        if (canvas.width !== frame.width) canvas.width = frame.width
+        if (canvas.height !== frame.height) canvas.height = frame.height
+        canvas.getContext('2d')?.putImageData(imageData, 0, 0)
+      }
+    })
+  }, [])
 
   const beginDrag = (e: React.MouseEvent, layer: SceneLayer, mode: DragMode): void => {
     e.stopPropagation()
@@ -103,6 +168,8 @@ function Viewer({
         {scene?.layers.map((layer) => {
           const live =
             preview && preview.layerId === layer.id ? { ...layer, ...preview.patch } : layer
+          const source = sourceById(layer.sourceId)
+          const hasLivePreview = isLiveNdiSource(source)
           return (
             <div
               key={layer.id}
@@ -115,6 +182,12 @@ function Viewer({
               }}
               onMouseDown={(e) => beginDrag(e, layer, 'move')}
             >
+              {hasLivePreview && (
+                <canvas
+                  className="scene-layer-preview"
+                  ref={(el) => registerPreviewCanvas(layer.sourceId, el)}
+                />
+              )}
               <div className="scene-layer-header">
                 <span className="scene-layer-name">{sourceName(layer.sourceId)}</span>
                 <div className="row-actions">

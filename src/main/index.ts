@@ -6,6 +6,7 @@ import { ndiMatrix } from './services/ndiMatrix'
 import { startAutomationApi, stopAutomationApi } from './services/automationApi'
 import { startClientHub, stopClientHub } from './services/clientHub'
 import { ndiDiscovery } from './services/ndiDiscovery'
+import { ndiPreviewService } from './services/ndiPreview'
 import type { AutomationCommand, NewSourceInput, Source, SceneLayer } from '../shared/types'
 
 function createWindow(): void {
@@ -45,6 +46,10 @@ function createWindow(): void {
 
   ndiDiscovery.on('changed', (sources) => {
     mainWindow.webContents.send('discovery:changed', sources)
+  })
+
+  ndiPreviewService.on('frame', (sourceId, frame) => {
+    mainWindow.webContents.send('ndi-preview:frame', sourceId, frame)
   })
 }
 
@@ -89,6 +94,11 @@ app.whenReady().then(() => {
 
   ipcMain.handle('discovery:get-sources', () => ndiDiscovery.list())
 
+  ipcMain.handle('ndi-preview:start', (_e, sourceId: string, host: string, port: number) =>
+    ndiPreviewService.start(sourceId, `${host}:${port}`)
+  )
+  ipcMain.handle('ndi-preview:stop', (_e, sourceId: string) => ndiPreviewService.stop(sourceId))
+
   startAutomationApi()
   startClientHub()
   ndiDiscovery.start()
@@ -104,6 +114,7 @@ app.on('window-all-closed', () => {
   stopAutomationApi()
   stopClientHub()
   ndiDiscovery.stop()
+  ndiPreviewService.stopAll()
   if (process.platform !== 'darwin') {
     app.quit()
   }

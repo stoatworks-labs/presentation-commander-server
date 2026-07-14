@@ -10,6 +10,13 @@ import type {
   Source
 } from '../shared/types'
 
+interface NdiPreviewFrame {
+  width: number
+  height: number
+  strideBytes: number
+  data: Uint8Array
+}
+
 const api = {
   matrix: {
     getState: (): Promise<OrchestratorState> => ipcRenderer.invoke('matrix:get-state'),
@@ -57,6 +64,22 @@ const api = {
       ipcRenderer.on('discovery:changed', listener)
       return (): void => {
         ipcRenderer.removeListener('discovery:changed', listener)
+      }
+    }
+  },
+  ndiPreview: {
+    start: (sourceId: string, host: string, port: number): Promise<void> =>
+      ipcRenderer.invoke('ndi-preview:start', sourceId, host, port),
+    stop: (sourceId: string): Promise<void> => ipcRenderer.invoke('ndi-preview:stop', sourceId),
+    onFrame: (callback: (sourceId: string, frame: NdiPreviewFrame) => void) => {
+      const listener = (
+        _e: Electron.IpcRendererEvent,
+        sourceId: string,
+        frame: NdiPreviewFrame
+      ): void => callback(sourceId, frame)
+      ipcRenderer.on('ndi-preview:frame', listener)
+      return (): void => {
+        ipcRenderer.removeListener('ndi-preview:frame', listener)
       }
     }
   }

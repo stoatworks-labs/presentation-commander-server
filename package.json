@@ -23,6 +23,7 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "bonjour-service": "^1.4.3",
+    "ndi-receive": "file:./native/ndi-receive",
     "ws": "^8.21.0"
   },
   "devDependencies": {

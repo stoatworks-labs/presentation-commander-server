@@ -10,6 +10,9 @@ export interface NdiSource {
   /** Last observed frame rate reported over the NDI discovery service. */
   frameRate: number | null
   connected: boolean
+  /** Real network connection port (machineName doubles as host). Set when added
+   *  from network discovery; enables live NDI receive preview in the compositor. */
+  port?: number
 }
 
 export interface WebSource {
@@ -24,7 +27,7 @@ export interface WebSource {
 export type Source = NdiSource | WebSource
 
 export type NewSourceInput =
-  | { kind: 'ndi'; name: string; machineName: string }
+  | { kind: 'ndi'; name: string; machineName: string; port?: number }
   | { kind: 'web'; name: string; url: string; transparent: boolean }
 
 /** A real NDI sender found on the network via mDNS (_ndi._tcp.local). */

@@ -166,7 +166,8 @@ class NdiMatrixService extends EventEmitter {
             name: input.name,
             machineName: input.machineName,
             frameRate: null,
-            connected: false
+            connected: input.port !== undefined,
+            port: input.port
           }
         : { kind: 'web', id, name: input.name, url: input.url, transparent: input.transparent }
     this.sources.push(source)

@@ -89,7 +89,13 @@ function SourcePool({
                 defaultValue=""
                 onChange={(e) => {
                   const found = discoveredSources.find((d) => d.id === e.target.value)
-                  if (found) setForm({ kind: 'ndi', name: found.name, machineName: found.host })
+                  if (found)
+                    setForm({
+                      kind: 'ndi',
+                      name: found.name,
+                      machineName: found.host,
+                      port: found.port
+                    })
                 }}
               >
                 <option value="" disabled>
@@ -106,7 +112,7 @@ function SourcePool({
               <input
                 placeholder="Machine name (or pick discovered above)"
                 value={form.machineName}
-                onChange={(e) => setForm({ ...form, machineName: e.target.value })}
+                onChange={(e) => setForm({ ...form, machineName: e.target.value, port: undefined })}
               />
             </>
           ) : (

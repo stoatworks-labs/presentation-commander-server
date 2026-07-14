@@ -15,10 +15,11 @@ the companion app that runs on each presentation laptop.
 ## What it does
 
 - **Source Pool** — add/edit/delete NDI and web sources, or pick a real NDI
-  sender discovered live on the network (mDNS `_ndi._tcp.local`, no native
-  SDK required for discovery)
+  sender discovered live on the network (mDNS `_ndi._tcp.local`)
 - **Scenes** — OBS-style compositor: build scenes from multiple layered
-  sources, drag to reposition, drag a corner to resize, toggle visibility
+  sources, drag to reposition, drag a corner to resize, toggle visibility.
+  Layers backed by a real network source show a **live video preview**
+  rendered from actual received NDI frames, not a placeholder box
 - **Matrix Inspector** — route any physical/stream/stage output to a source
   or a full composited scene
 - **Control Deck** — live presenter notes and slide position per connected
@@ -34,11 +35,22 @@ the companion app that runs on each presentation laptop.
 
 ## What's real vs. mocked
 
-NDI **source discovery** is real (mDNS), but this project does not receive
-or send actual NDI video frames — that requires the native NDI SDK, which
-isn't wired in. Routing, compositing, and outputs are all state/metadata
-only, consistent with the rest of the app's approach to hardware it doesn't
-have physical access to (DeckLink capture cards, real broadcast outputs).
+NDI **discovery and receive are real**, built directly against the official
+[Vizrt NDI SDK](https://ndi.video/for-developers/ndi-sdk/) via a small
+native N-API addon (`native/ndi-receive`) — no third-party NDI wrapper.
+Source discovery uses mDNS; the scene compositor's layer previews are
+actual decoded video frames pulled from the network with
+`NDIlib_recv_capture_v3`. DeckLink capture cards and other physical
+broadcast hardware are still out of scope — this project has no way to
+test against hardware it doesn't have.
+
+### Building from source
+
+The native receive addon links against the NDI SDK at build time. Install
+the [NDI SDK](https://ndi.video/for-developers/ndi-sdk/) first (macOS
+default: `/Library/NDI SDK for Apple`; override the location with
+`NDI_SDK_DIR` if yours lives elsewhere). `npm install` rebuilds the addon
+automatically via `@electron/rebuild`.
 
 ## Project Setup
 

@@ -1,0 +1,11 @@
+{
+  "name": "ndi-receive",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Native addon wrapping the NDI SDK's receive API for live source preview",
+  "main": "index.js",
+  "gypfile": true,
+  "dependencies": {
+    "node-addon-api": "^8.9.0"
+  }
+}
