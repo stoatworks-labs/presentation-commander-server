@@ -1,9 +1,9 @@
 # Presentation Commander — Server
 
-> **AI-assisted project.** This codebase was built with the help of
-> [Claude](https://claude.ai), Anthropic's AI assistant — including
-> architecture, implementation, and documentation. Review it accordingly
-> before relying on it in production.
+> **AI-assisted project.** This codebase was created with [Claude](https://claude.com/claude-code)
+> (Anthropic), directed and reviewed by a human author — including architecture,
+> implementation, and documentation. Review it accordingly before relying on it in
+> production.
 
 The master control application for live event production: a real-time NDI
 video matrix router, layered scene compositor, and presenter-notes hub,
@@ -96,6 +96,10 @@ the [NDI SDK](https://ndi.video/for-developers/ndi-sdk/) first (macOS
 default: `/Library/NDI SDK for Apple`; override the location with
 `NDI_SDK_DIR` if yours lives elsewhere). `npm install` rebuilds the addon
 automatically via `@electron/rebuild`.
+
+## Roadmap / TODO
+
+- [ ] **Physical capture hardware** — DeckLink capture cards and other broadcast I/O are currently out of scope; the project has no way to test against hardware it doesn't have. NDI discovery/receive and the compositor are real (see "What's real vs. mocked" above).
 
 ## Project Setup
 
