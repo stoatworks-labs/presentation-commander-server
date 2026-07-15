@@ -28,12 +28,55 @@ the companion app that runs on each presentation laptop.
   Client Node
 - **Control Surface** — a button-grid control surface: scene recall, blackout,
   next/previous slide, send-note-to-stage — all backed by the same command
-  path used by the JSON-RPC automation API (`:9700`) for Bitfocus
-  Companion/Stream Deck integration
+  path used by the JSON-RPC automation API (`:9700`), which also powers the
+  [Bitfocus Companion module](https://github.com/allansargeant/companion-module-presentationcommander-server)
+  for Stream Deck integration
+- **Confidence Monitor** — a `Presenter Notes` source type composites live
+  presenter notes over video into one real NDI output (`native/ndi-send`,
+  the same addon architecture as the Client's NDI send), so a physical
+  stage monitor gets an actual broadcast signal instead of a text box in
+  the operator's own window
 - **Client Hub** (`:9800`) — WebSocket server that Client Nodes register
   with; connected clients automatically appear as routable sources, and
   next/previous-slide commands are forwarded live to the client instead of
   being simulated locally
+
+## Architecture
+
+```mermaid
+graph LR
+    subgraph laptop["Presentation Laptop (Client Node)"]
+        SS["SlideSource<br/>PDF · Keynote · Google Slides"]
+        NDIsend["NDI Send<br/>native/ndi-send"]
+        ProgOut["Program Out window"]
+        SL["serverLink.ts"]
+        SS --> NDIsend
+        SS --> ProgOut
+        SS --> SL
+    end
+
+    subgraph browser["Browser (optional)"]
+        GSExt["Google Slides<br/>MV3 extension"]
+    end
+    GSExt -- "ws://localhost:9801" --> SL
+
+    subgraph server["Master Server"]
+        Hub["Client Hub<br/>WS :9800"]
+        Matrix["NDI Matrix /<br/>Scene Compositor"]
+        Auto["Automation API<br/>HTTP :9700"]
+        ConfMon["Confidence Monitor<br/>NDI Send"]
+        Hub --> Matrix
+        Matrix --> ConfMon
+        Auto --> Matrix
+    end
+    SL -- "register / slide-state / command" --> Hub
+
+    NDIsend -- "NDI network" --> Matrix
+    ConfMon -- "NDI network" --> Monitor["Physical stage<br/>confidence monitor"]
+
+    Companion["Bitfocus Companion<br/>module"] -- "GET /state, POST /rpc" --> Auto
+    Deck["Stream Deck / any<br/>Companion surface"] --> Companion
+```
 
 ## What's real vs. mocked
 
