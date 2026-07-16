@@ -95,12 +95,22 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: |
           for d in native/*/build/Release; do [ -d "$d" ] && cp "/Library/NDI SDK for Apple/lib/macOS/libndi.dylib" "$d/"; done
+          # resolve-sdk-dir.js symlinks vendor-sdk -> /Library/NDI SDK for Apple;
+          # the native addon is already compiled, and electron-builder refuses to
+          # pack a symlink into a system path, so drop it before packaging.
+          rm -rf native/*/vendor-sdk
 
       - name: Bundle NDI runtime (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          lib=$(ls /usr/lib/libndi.so* | head -1)
-          for d in native/*/build/Release; do [ -d "$d" ] && cp -a "$lib" "$d/"; done
+          # Dereference the SONAME symlinks into real files so electron-builder
+          # can pack them (a dangling symlink breaks its stat()).
+          for d in native/*/build/Release; do
+            [ -d "$d" ] || continue
+            cp -L /usr/lib/libndi.so.6 "$d/libndi.so.6" 2>/dev/null || true
+            cp -L /usr/lib/libndi.so   "$d/libndi.so"   2>/dev/null || true
+          done
+          rm -rf native/*/vendor-sdk
 
       - name: Compile (electron-vite)
         run: npx electron-vite build
@@ -109,6 +119,7 @@ jobs:
         run: npx electron-builder ${{ matrix.platform }} --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
       - uses: actions/upload-artifact@v4
         with:
