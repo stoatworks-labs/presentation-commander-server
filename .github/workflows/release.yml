@@ -1,0 +1,137 @@
+name: release
+
+# Full-platform installers for the NDI-enabled Electron app.
+#
+# The native NDI addons link the NewTek/NDI SDK, which constrains coverage:
+#   * Windows: the SDK + binding.gyp are x64-only  -> no Windows/arm64
+#   * Linux:   arm64 NDI libs are unreliable       -> x64 only here
+#   * macOS:   the SDK dylib is universal          -> x64 and arm64
+# So this covers Windows-x64, macOS-x64, macOS-arm64 and Linux-x64. Native
+# addons are rebuilt on a native runner per arch (no cross-arch node-gyp).
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  NDI_VERSION: '6'
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: windows-x64,  os: windows-latest, platform: '--win --x64' }
+          - { name: macos-x64,    os: macos-13,       platform: '--mac --x64' }
+          - { name: macos-arm64,  os: macos-14,       platform: '--mac --arm64' }
+          - { name: linux-x64,    os: ubuntu-latest,  platform: '--linux --x64' }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # ---- NDI SDK setup (per OS) ----
+      - name: Set up NDI SDK (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $sdk = "C:\Program Files\NDI\NDI 6 SDK"
+          Invoke-WebRequest -Uri "https://downloads.ndi.tv/SDK/NDI_SDK/NDI%206%20SDK.exe" -OutFile "$env:RUNNER_TEMP\ndi.exe"
+          choco install innoextract -y --no-progress
+          innoextract --output-dir "$env:RUNNER_TEMP\ndi" "$env:RUNNER_TEMP\ndi.exe"
+          New-Item -ItemType Directory -Force -Path $sdk | Out-Null
+          Copy-Item -Recurse -Force "$env:RUNNER_TEMP\ndi\app\*" "$sdk\"
+          if (-not (Test-Path "$sdk\Include\Processing.NDI.Lib.h")) { throw "NDI SDK extract failed" }
+
+      - name: Set up NDI SDK (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          curl -fL -o "$RUNNER_TEMP/ndi.pkg" "https://downloads.ndi.tv/SDK/NDI_SDK_Mac/Install_NDI_SDK_v6_Apple.pkg"
+          sudo installer -pkg "$RUNNER_TEMP/ndi.pkg" -target /
+          test -f "/Library/NDI SDK for Apple/lib/macOS/libndi.dylib" || { echo "NDI dylib missing"; ls -R "/Library/NDI SDK for Apple" | head; exit 1; }
+
+      - name: Set up NDI SDK (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          curl -fL -o "$RUNNER_TEMP/ndi.tar.gz" "https://downloads.ndi.tv/SDK/NDI_SDK_Linux/Install_NDI_SDK_v6_Linux.tar.gz"
+          mkdir -p "$RUNNER_TEMP/ndi" && tar xzf "$RUNNER_TEMP/ndi.tar.gz" -C "$RUNNER_TEMP/ndi"
+          sh=$(find "$RUNNER_TEMP/ndi" -name 'Install_NDI_SDK*Linux.sh' | head -1)
+          ( cd "$RUNNER_TEMP/ndi" && yes | PAGER=cat sh "$sh" >/dev/null 2>&1 || true )
+          root=$(find "$RUNNER_TEMP/ndi" -maxdepth 1 -type d -name 'NDI SDK for Linux' | head -1)
+          sudo mkdir -p /opt/ndi-sdk
+          sudo cp -R "$root/." /opt/ndi-sdk/
+          sudo cp -av /opt/ndi-sdk/lib/x86_64-linux-gnu/libndi.so* /usr/lib/ 2>/dev/null || sudo cp -av /opt/ndi-sdk/lib/x86_64-linux-gnu/* /usr/lib/
+          sudo ldconfig
+          echo "NDI_SDK_DIR=/opt/ndi-sdk" >> "$GITHUB_ENV"
+          test -f /opt/ndi-sdk/include/Processing.NDI.Lib.h || { echo "NDI headers missing"; ls -R /opt/ndi-sdk | head; exit 1; }
+
+      # ---- Install (postinstall rebuilds native addons against Electron ABI) ----
+      - name: Install dependencies
+        run: npm ci
+
+      # ---- Bundle the NDI runtime lib next to the built addons ----
+      - name: Bundle NDI runtime (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $dll = "C:\Program Files\NDI\NDI 6 SDK\Bin\x64\Processing.NDI.Lib.x64.dll"
+          Get-ChildItem native -Directory | ForEach-Object {
+            $dest = Join-Path $_.FullName "build\Release"
+            if (Test-Path $dest) { Copy-Item $dll -Destination $dest -Force }
+          }
+
+      - name: Bundle NDI runtime (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          for d in native/*/build/Release; do [ -d "$d" ] && cp "/Library/NDI SDK for Apple/lib/macOS/libndi.dylib" "$d/"; done
+
+      - name: Bundle NDI runtime (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          lib=$(ls /usr/lib/libndi.so* | head -1)
+          for d in native/*/build/Release; do [ -d "$d" ] && cp -a "$lib" "$d/"; done
+
+      - name: Compile (electron-vite)
+        run: npx electron-vite build
+
+      - name: Package (electron-builder)
+        run: npx electron-builder ${{ matrix.platform }} --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: presentation-commander-server-${{ matrix.name }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.zip
+            dist/*.deb
+            dist/*.rpm
+            dist/*.AppImage
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true

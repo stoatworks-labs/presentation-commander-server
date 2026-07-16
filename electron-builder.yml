@@ -42,10 +42,10 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
     - deb
-  maintainer: electronjs.org
-  category: Utility
+    - rpm
+  maintainer: Allan Sargeant <allan.sargeant@gmail.com>
+  category: AudioVideo
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
