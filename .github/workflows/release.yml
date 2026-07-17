@@ -6,8 +6,9 @@ name: release
 #   * Windows: the SDK + binding.gyp are x64-only  -> no Windows/arm64
 #   * Linux:   arm64 NDI libs are unreliable       -> x64 only here
 #   * macOS:   the SDK dylib is universal          -> x64 and arm64
-# So this covers Windows-x64, macOS-x64, macOS-arm64 and Linux-x64. Native
-# addons are rebuilt on a native runner per arch (no cross-arch node-gyp).
+# So this covers Windows-x64, macOS-x64, macOS-arm64 and Linux-x64. macOS
+# builds both slices on the Apple Silicon runner (macos-14): arm64 natively
+# and x64 via clang cross-compile, since GitHub's Intel runners queue forever.
 on:
   workflow_dispatch:
   push:
@@ -30,7 +31,7 @@ jobs:
       matrix:
         include:
           - { name: windows-x64,  os: windows-latest, platform: '--win --x64' }
-          - { name: macos-x64,    os: macos-13,       platform: '--mac --x64' }
+          - { name: macos-x64,    os: macos-14,       platform: '--mac --x64' }
           - { name: macos-arm64,  os: macos-14,       platform: '--mac --arm64' }
           - { name: linux-x64,    os: ubuntu-latest,  platform: '--linux --x64' }
     steps:
@@ -59,7 +60,15 @@ jobs:
         run: |
           curl -fL -o "$RUNNER_TEMP/ndi.pkg" "https://downloads.ndi.tv/SDK/NDI_SDK_Mac/Install_NDI_SDK_v6_Apple.pkg"
           sudo installer -pkg "$RUNNER_TEMP/ndi.pkg" -target /
-          test -f "/Library/NDI SDK for Apple/lib/macOS/libndi.dylib" || { echo "NDI dylib missing"; ls -R "/Library/NDI SDK for Apple" | head; exit 1; }
+          # Copy to a space-free path and point the addon at it via NDI_SDK_DIR.
+          # This makes resolve-sdk-dir.js return the env path directly instead of
+          # creating a vendor-sdk symlink into /Library — that symlink breaks
+          # electron-builder packaging, and it would be re-created during the
+          # package-time x64 rebuild on the Apple Silicon runner otherwise.
+          sudo rm -rf /opt/ndi-mac
+          sudo cp -R "/Library/NDI SDK for Apple" /opt/ndi-mac
+          echo "NDI_SDK_DIR=/opt/ndi-mac" >> "$GITHUB_ENV"
+          test -f /opt/ndi-mac/lib/macOS/libndi.dylib || { echo "NDI dylib missing"; ls -R /opt/ndi-mac | head; exit 1; }
 
       - name: Set up NDI SDK (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -94,10 +103,8 @@ jobs:
       - name: Bundle NDI runtime (macOS)
         if: startsWith(matrix.os, 'macos')
         run: |
-          for d in native/*/build/Release; do [ -d "$d" ] && cp "/Library/NDI SDK for Apple/lib/macOS/libndi.dylib" "$d/"; done
-          # resolve-sdk-dir.js symlinks vendor-sdk -> /Library/NDI SDK for Apple;
-          # the native addon is already compiled, and electron-builder refuses to
-          # pack a symlink into a system path, so drop it before packaging.
+          for d in native/*/build/Release; do [ -d "$d" ] && cp /opt/ndi-mac/lib/macOS/libndi.dylib "$d/"; done
+          # Belt-and-suspenders: ensure no stray vendor-sdk symlink remains.
           rm -rf native/*/vendor-sdk
 
       - name: Bundle NDI runtime (Linux)
