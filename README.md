@@ -12,6 +12,12 @@ built as an Electron + React + TypeScript desktop app.
 Pairs with [presentation-commander-client](https://github.com/stoatworks-labs/presentation-commander-client),
 the companion app that runs on each presentation laptop.
 
+[![Watch it running — 43 seconds](docs/video-thumb.png)](https://www.youtube.com/watch?v=sTzrCB5XlY8)
+
+*A 43-second tour. Every frame is the real application, recorded on screen and driven over
+the automation API on `:9700` — the same endpoint the Companion module uses. It runs on the
+shipped demo data, and does not show a presentation laptop paired to the server.*
+
 ![Presentation Commander Server main window: scene compositor, source pool, matrix inspector, control deck, and control surface](docs/screenshot.png)
 
 ## What it does
