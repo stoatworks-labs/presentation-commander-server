@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws'
 import { ndiMatrix } from './ndiMatrix'
 import type { ClientToServerMessage, ServerToClientMessage } from '../../shared/protocol'
+import { say } from '../diag/index.js'
 
 /**
  * Registration + slide-sync channel for Client Nodes (ws://0.0.0.0:9800).
@@ -51,7 +52,7 @@ export function startClientHub(): void {
     })
   })
 
-  wss.on('error', (err) => console.error('[client-hub] server error:', err))
+  wss.on('error', (err) => say.error('[client-hub] server error:', err))
 
   ndiMatrix.setCommandForwarder((targetClientId, command) => {
     const socket = socketsByClientId.get(targetClientId)
@@ -60,7 +61,7 @@ export function startClientHub(): void {
     return true
   })
 
-  console.log(`[client-hub] listening on ${PORT}`)
+  say.info(`[client-hub] listening on ${PORT}`)
 }
 
 export function stopClientHub(): void {

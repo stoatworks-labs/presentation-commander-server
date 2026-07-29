@@ -9,6 +9,26 @@ import { ndiDiscovery } from './services/ndiDiscovery'
 import { ndiPreviewService } from './services/ndiPreview'
 import { ndiOutputSenderService } from './services/ndiOutputSender'
 import type { AutomationCommand, NewSourceInput, Source, SceneLayer } from '../shared/types'
+import { collectDiagnostics, init as initDiag, say } from './diag/index.js'
+import { installElectronDiagnostics } from './diag/electron.js'
+
+// Before anything that can fail, so a failure during startup is logged and
+// captured like any other. An Electron app is several processes, so the
+// renderer and GPU hooks go in too - neither raises anything the main
+// process's uncaughtException handler can see.
+initDiag({
+  app: 'presentation-commander-server',
+  envPrefix: 'PC_SERVER',
+  version: '1.0.0',
+  cwd: app_diag_cwd()
+})
+installElectronDiagnostics()
+
+if (process.argv.includes('--collect-diagnostics')) {
+  // stdout, so it can be used in a script; logging went to stderr.
+  say.info(collectDiagnostics())
+  app.exit(0)
+}
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -138,3 +158,10 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
+
+/** Repo root when running from source; irrelevant once packaged, where
+ *  there is no .git and the git revision reads as 'unknown'. */
+function app_diag_cwd(): string {
+  return join(__dirname, '../../..')
+}

@@ -13,3 +13,11 @@ Electron server app for the Presentation Commander system (pairs with presentati
 - Packaging depends on `scripts/clean-native-sdk-links.js` — don't skip it in custom build steps (native SDK symlinks).
 - Pairs with `presentation-commander-client`; keep their shared protocol in sync.
 - "Commit" = commit **and** push.
+
+## Diagnostics
+
+Log via `say`/`log` from `src/main/diag/`, never `console`. `installElectronDiagnostics()`
+hooks `render-process-gone` and `child-process-gone` — a dead renderer raises nothing the
+main process's `uncaughtException` handler can see. `diag:collect` and `diag:openLogFolder`
+are registered over IPC but **no UI calls them yet**; wiring a button is outstanding.
+See [docs/diagnostics.md](docs/diagnostics.md).

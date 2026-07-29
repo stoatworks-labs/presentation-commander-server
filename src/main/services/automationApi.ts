@@ -1,6 +1,7 @@
 import { createServer, type Server } from 'http'
 import { ndiMatrix } from './ndiMatrix'
 import type { AutomationCommand } from '../../shared/types'
+import { say } from '../diag/index.js'
 
 /**
  * JSON-RPC control surface for Bitfocus Companion / Stream Deck. Listens
@@ -49,8 +50,8 @@ export function startAutomationApi(): void {
       }
     })
   })
-  server.on('error', (err) => console.error('[automation-api] listen error:', err))
-  server.listen(PORT, '127.0.0.1', () => console.log(`[automation-api] listening on ${PORT}`))
+  server.on('error', (err) => say.error('[automation-api] listen error:', err))
+  server.listen(PORT, '127.0.0.1', () => say.info(`[automation-api] listening on ${PORT}`))
 }
 
 export function stopAutomationApi(): void {

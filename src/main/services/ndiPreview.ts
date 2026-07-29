@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events'
 import { NdiReceiver, type NdiFrame } from 'ndi-receive'
+import { say } from '../diag/index.js'
 
 interface PreviewEntry {
   receiver: NdiReceiver
@@ -60,7 +61,7 @@ class NdiPreviewService extends EventEmitter {
         const frame: NdiFrame | null = await entry.receiver.captureFrame(1000)
         if (frame && !entry.stopped) this.emit('frame', sourceId, frame)
       } catch (err) {
-        console.error(`[ndi-preview] capture failed for ${sourceId}:`, err)
+        say.error(`[ndi-preview] capture failed for ${sourceId}:`, err)
         await new Promise((resolve) => setTimeout(resolve, 500))
       }
     }

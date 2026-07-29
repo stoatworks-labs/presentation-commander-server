@@ -1,4 +1,5 @@
 import { NdiSender } from 'ndi-send'
+import { say } from '../diag/index.js'
 
 interface Frame {
   buffer: Buffer
@@ -59,7 +60,7 @@ class NdiOutputSenderService {
     this.sending = true
     this.sender
       .sendFrame(frame.buffer, frame.width, frame.height)
-      .catch((err) => console.error('[ndi-output-sender] sendFrame failed:', err))
+      .catch((err) => say.error('[ndi-output-sender] sendFrame failed:', err))
       .finally(() => {
         this.sending = false
         this.drain()

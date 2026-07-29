@@ -1,6 +1,7 @@
 import { Bonjour, Service } from 'bonjour-service'
 import { EventEmitter } from 'events'
 import type { DiscoveredNdiSource } from '../../shared/types'
+import { say } from '../diag/index.js'
 
 type NdiService = InstanceType<typeof Service>
 
@@ -32,7 +33,7 @@ class NdiDiscoveryService extends EventEmitter {
         this.emit('changed', this.list())
       })
     } catch (err) {
-      console.error('[ndi-discovery] failed to start mDNS browser:', err)
+      say.error('[ndi-discovery] failed to start mDNS browser:', err)
     }
   }
 
