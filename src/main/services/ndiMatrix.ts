@@ -14,11 +14,29 @@ import type {
 } from '../../shared/types'
 
 /**
- * Central router state. Backed by mock data until the native NDI SDK
- * bindings (grandiose / NDI Advanced SDK) and OS-level DeckLink drivers
- * are wired in. The public interface (getState/executeCommand/CRUD
- * methods) is what the rest of the app depends on, so swapping the mock
- * for real NDI discovery later shouldn't require touching callers.
+ * Central router state: the single owner of sources, scenes, outputs, clients
+ * and notes. Everything else — the renderer, the automation API, the client
+ * hub — reads through getState() and mutates through the CRUD methods or
+ * executeCommand(), and gets told about changes by the 'state-changed' event.
+ *
+ * The public interface (getState/executeCommand/CRUD) is deliberately the only
+ * contact surface, so the backing implementation can change without touching
+ * callers. That has already paid off once: NDI is no longer mocked.
+ *
+ * WHAT IS AND ISN'T REAL, as of now:
+ *  - NDI discovery, receive and send are REAL (see ndiDiscovery / ndiPreview /
+ *    ndiOutputSender, over the official Vizrt SDK).
+ *  - DeckLink and other physical broadcast I/O are NOT implemented and are out
+ *    of scope. An output of kind 'decklink' is a routing destination in this
+ *    model and nothing comes out of a card.
+ *  - The seed data below (three NDI sources, two web sources, two scenes, two
+ *    clients with notes) is DEMO DATA. It is not discovered and none of it
+ *    exists on any network. An operator will see it on first launch.
+ *
+ * NOTHING HERE IS PERSISTED. All state is in memory, so quitting the app
+ * discards every source, scene and route the operator built and the next
+ * launch starts from the seed data again. That is the limitation users hit
+ * first; see docs/USER-GUIDE.md.
  */
 class NdiMatrixService extends EventEmitter {
   private sources: Source[] = [
@@ -186,6 +204,16 @@ class NdiMatrixService extends EventEmitter {
     this.publish()
   }
 
+  /**
+   * Delete a source, and cascade: any output routed to it is unrouted, and it
+   * is stripped out of every scene that used it.
+   *
+   * The cascade is deliberate — leaving a dangling id would make an output
+   * point at nothing while still claiming to be routed — but it means this is
+   * DESTRUCTIVE AND IMMEDIATE. There is no confirmation and no undo, and
+   * deleting a source that is on air blacks out its outputs. Callers that
+   * expose this to an operator should say so.
+   */
   removeSource(id: string): void {
     this.sources = this.sources.filter((s) => s.id !== id)
     for (const output of this.outputs) {
@@ -212,6 +240,8 @@ class NdiMatrixService extends EventEmitter {
     this.publish()
   }
 
+  /** Delete a scene, unrouting any output pointing at it. Same immediacy
+   *  caveat as removeSource(). */
   removeScene(id: string): void {
     this.scenes = this.scenes.filter((s) => s.id !== id)
     for (const output of this.outputs) {
@@ -278,7 +308,19 @@ class NdiMatrixService extends EventEmitter {
     this.commandForwarder = fn
   }
 
-  /** Reuses the existing client id for a matching name so reconnects don't pile up duplicates. */
+  /**
+   * Register (or re-register) a Client Node and return its id.
+   *
+   * Identity is the client's NAME. A registration matching an existing name
+   * reuses that client — keeping its id, notes and slide index, overwriting
+   * its platform/app — which is what stops a flaky network from filling the
+   * list with duplicates on every reconnect.
+   *
+   * The cost of keying on name: TWO DIFFERENT LAPTOPS SHARING A NAME COLLAPSE
+   * INTO ONE CLIENT, silently, and their slide state lands on the same entry.
+   * Rigs need unique machine names. If a stable per-machine id ever arrives
+   * over the wire, this is the function to change.
+   */
   registerClient(info: Pick<ClientNode, 'name' | 'platform' | 'app'>): string {
     const existing = this.clients.find((c) => c.name === info.name)
     if (existing) {
@@ -393,7 +435,24 @@ class NdiMatrixService extends EventEmitter {
         return
       case 'next-slide':
       case 'previous-slide': {
+        // Preferred path: hand it to the live Client Node and let the real
+        // deck advance. The forwarder returns false when that client has no
+        // open socket.
         if (this.commandForwarder?.(command.clientId, { type: command.type })) return
+
+        // Fallback when no client is connected: step our OWN idea of the
+        // slide index across the slides we happen to hold notes for.
+        //
+        // Be clear about what this is. Nothing on any presentation laptop
+        // moves — only the number the console displays. executeCommand()
+        // returns void either way, so the caller (a Stream Deck button via
+        // the automation API, or the in-app Control Surface) cannot tell the
+        // two paths apart and will report success regardless. With no notes
+        // for that client it does nothing at all, still reporting success.
+        //
+        // The honest signal is the client's `online` flag in getState(). If
+        // this ever needs to be distinguishable, the return type has to
+        // change — every caller currently ignores it.
         const slides = (this.notes[command.clientId] ?? [])
           .map((n) => n.slideIndex)
           .sort((a, b) => a - b)
