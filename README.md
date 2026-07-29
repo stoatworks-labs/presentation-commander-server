@@ -9,7 +9,7 @@ The master control application for live event production: a real-time NDI
 video matrix router, layered scene compositor, and presenter-notes hub,
 built as an Electron + React + TypeScript desktop app.
 
-Pairs with [presentation-commander-client](https://github.com/allansargeant/presentation-commander-client),
+Pairs with [presentation-commander-client](https://github.com/stoatworks-labs/presentation-commander-client),
 the companion app that runs on each presentation laptop.
 
 ![Presentation Commander Server main window: scene compositor, source pool, matrix inspector, control deck, and control surface](docs/screenshot.png)
@@ -29,7 +29,7 @@ the companion app that runs on each presentation laptop.
 - **Control Surface** — a button-grid control surface: scene recall, blackout,
   next/previous slide, send-note-to-stage — all backed by the same command
   path used by the JSON-RPC automation API (`:9700`), which also powers the
-  [Bitfocus Companion module](https://github.com/allansargeant/companion-module-presentationcommander-server)
+  [Bitfocus Companion module](https://github.com/stoatworks-labs/companion-module-presentationcommander-server)
   for Stream Deck integration
 - **Confidence Monitor** — a `Presenter Notes` source type composites live
   presenter notes over video into one real NDI output (`native/ndi-send`,

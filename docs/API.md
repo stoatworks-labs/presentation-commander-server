@@ -11,8 +11,8 @@ Everything this app exposes to something outside itself, plus the internal IPC s
 | [5](#5-ipc-channels) | Electron IPC channels | `src/main/index.ts`, `src/preload/index.ts` |
 
 > **The protocol in §2 is shared across three repos** — this one,
-> [presentation-commander-client](https://github.com/allansargeant/presentation-commander-client),
-> and [companion-module-presentationcommander-server](https://github.com/allansargeant/companion-module-presentationcommander-server).
+> [presentation-commander-client](https://github.com/stoatworks-labs/presentation-commander-client),
+> and [companion-module-presentationcommander-server](https://github.com/stoatworks-labs/companion-module-presentationcommander-server).
 > It is kept in sync **by hand**. A change to a message shape here can break the presentation
 > laptop mid-show, or silently stop a Stream Deck button working. The Companion module is the
 > one people forget, because it lives outside the pair.

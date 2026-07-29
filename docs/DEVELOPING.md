@@ -13,8 +13,8 @@ kept in sync by hand**:
 | Repo | Role |
 |---|---|
 | **presentation-commander-server** (this) | Master control: routing, scenes, notes |
-| [presentation-commander-client](https://github.com/allansargeant/presentation-commander-client) | Runs on the presentation laptop; bespoke PDF presentation engine |
-| [companion-module-presentationcommander-server](https://github.com/allansargeant/companion-module-presentationcommander-server) | Bitfocus Companion module driving this server from a Stream Deck |
+| [presentation-commander-client](https://github.com/stoatworks-labs/presentation-commander-client) | Runs on the presentation laptop; bespoke PDF presentation engine |
+| [companion-module-presentationcommander-server](https://github.com/stoatworks-labs/companion-module-presentationcommander-server) | Bitfocus Companion module driving this server from a Stream Deck |
 
 **When you touch the wire protocol, check all three.** A change to a message shape here can
 break the presentation laptop mid-show, or silently stop a Stream Deck button working. The

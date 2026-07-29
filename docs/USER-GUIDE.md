@@ -150,7 +150,7 @@ Two behaviours worth knowing:
 
 ## 7. Client Nodes and presenter notes
 
-A Client Node is the [client app](https://github.com/allansargeant/presentation-commander-client)
+A Client Node is the [client app](https://github.com/stoatworks-labs/presentation-commander-client)
 running on a presentation laptop. It connects to this server's hub on port **9800**, registers,
 and streams its slide position and notes.
 
@@ -191,7 +191,7 @@ Run this on a locked-down production network. It is not safe on venue or guest W
 
 ## 8. Stream Deck / Companion
 
-The [Companion module](https://github.com/allansargeant/companion-module-presentationcommander-server)
+The [Companion module](https://github.com/stoatworks-labs/companion-module-presentationcommander-server)
 drives the server over HTTP on port **9700**, using exactly the same command path as the in-app
 Control Surface — so a button and a click do the same thing by construction.
 
