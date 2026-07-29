@@ -12,6 +12,7 @@ import SourcePool from './components/SourcePool'
 import Viewer from './components/Viewer'
 import MatrixInspector from './components/MatrixInspector'
 import ControlDeck from './components/ControlDeck'
+import DiagnosticsPanel from './components/DiagnosticsPanel'
 import ControlSurface from './components/ControlSurface'
 import StageDisplayCompositor from './components/StageDisplayCompositor'
 
@@ -163,6 +164,7 @@ function App(): React.JSX.Element {
           activeClientId={activeClientId}
           onExecute={execute}
         />
+        <DiagnosticsPanel />
       </div>
     </div>
   )

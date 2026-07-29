@@ -88,6 +88,12 @@ const api = {
     isActive: (): Promise<boolean> => ipcRenderer.invoke('ndi-output:is-active'),
     pushFrame: (data: Uint8Array, width: number, height: number): Promise<void> =>
       ipcRenderer.invoke('ndi-output:push-frame', data, width, height)
+  },
+  diag: {
+    /** Write one JSON file describing the app's state and return its path. */
+    collect: (): Promise<string> => ipcRenderer.invoke('diag:collect'),
+    /** Reveal the log folder in the OS file manager. */
+    openLogFolder: (): Promise<string> => ipcRenderer.invoke('diag:openLogFolder')
   }
 }
 
