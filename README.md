@@ -97,6 +97,18 @@ default: `/Library/NDI SDK for Apple`; override the location with
 `NDI_SDK_DIR` if yours lives elsewhere). `npm install` rebuilds the addon
 automatically via `@electron/rebuild`.
 
+## Documentation
+
+| Doc | Contents |
+|---|---|
+| [docs/USER-GUIDE.md](docs/USER-GUIDE.md) | Operating it: sources, scenes, routing, client nodes, troubleshooting — and what is real vs. mocked |
+| [docs/API.md](docs/API.md) | Automation API (`:9700`), Client Hub protocol (`:9800`), domain model, IPC channels |
+| [docs/DEVELOPING.md](docs/DEVELOPING.md) | Setup, the NDI SDK build dependency, packaging traps, architecture |
+
+Two things worth knowing before a show, both covered in the user guide: **nothing is
+persisted** — quitting discards every source, scene and route — and the app starts with
+**demo data** that looks like a configured rig but isn't.
+
 ## Roadmap / TODO
 
 - [ ] **Physical capture hardware** — DeckLink capture cards and other broadcast I/O are currently out of scope; the project has no way to test against hardware it doesn't have. NDI discovery/receive and the compositor are real (see "What's real vs. mocked" above).
