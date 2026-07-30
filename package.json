@@ -1,6 +1,6 @@
 {
   "name": "presentation-commander-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Presentation Commander — Master Server for live event production (NDI matrix routing, scene compositing, presenter notes)",
   "main": "./out/main/index.js",
   "author": "Allan Sargeant",

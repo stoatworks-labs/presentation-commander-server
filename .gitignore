@@ -6,3 +6,4 @@ out
 *.log*
 native/*/build
 native/*/vendor-sdk
+dist-release/

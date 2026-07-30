@@ -24,30 +24,58 @@ asarUnpack:
   - '**/*.dll'
 win:
   executableName: presentation-commander-server
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+    - target: portable
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: ${name}-${version}-${arch}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+portable:
+  artifactName: ${name}-${version}-${arch}-portable.${ext}
 mac:
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
+  # Ad-hoc sign every target. Without this electron-builder skips signing
+  # entirely when no Developer ID is installed, and Gatekeeper on Apple
+  # Silicon then refuses the standalone arm64/x64 builds outright
+  # ("is damaged and can't be opened").
+  identity: '-'
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
-dmg:
-  artifactName: ${name}-${version}.${ext}
-linux:
   target:
-    - AppImage
-    - deb
-    - rpm
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+dmg:
+  artifactName: ${name}-${version}-${arch}.${ext}
+linux:
+  # Each target needs an explicit arch list. Without one electron-builder
+  # builds the host architecture only, which on this Mac silently produced
+  # arm64-only Linux packages and no x64 at all.
+  target:
+    - target: AppImage
+      arch: [x64, arm64]
+    - target: deb
+      arch: [x64, arm64]
+    - target: rpm
+      arch: [x64, arm64]
   maintainer: Allan Sargeant <allan.sargeant@gmail.com>
   category: AudioVideo
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  # ${arch} is required: without it the x64 and arm64 AppImages resolve to
+  # the same filename and the second overwrites the first.
+  artifactName: ${name}-${version}-${arch}.${ext}
 npmRebuild: false
 publish:
   provider: generic
