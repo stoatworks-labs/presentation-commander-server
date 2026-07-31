@@ -1,17 +1,33 @@
 #include <napi.h>
 #include <Processing.NDI.Lib.h>
-#include <atomic>
+#include <mutex>
+#include <string>
 #include <cstring>
 #include <vector>
 
 namespace {
 
-std::atomic<int> g_initCount{0};
+// NDILIB_REDIST_URL is defined by the SDK headers, but it is empty on Linux —
+// there is no one-click redistributable there. Fall back to the SDK download
+// page so an operator is never shown a bare "".
+const char* RedistUrl() {
+#if defined(NDILIB_REDIST_URL)
+  return NDILIB_REDIST_URL[0] != '\0' ? NDILIB_REDIST_URL
+                                      : "https://ndi.video/for-developers/ndi-sdk/";
+#else
+  return "https://ndi.video/for-developers/ndi-sdk/";
+#endif
+}
 
-void EnsureInitialized() {
-  if (g_initCount.fetch_add(1) == 0) {
-    NDIlib_initialize();
-  }
+// NDIlib_initialize() returns false when the runtime does not support this CPU.
+// call_once rather than a counter because the result has to be published to
+// every caller, not just the one that happened to run the initialisation, and
+// NDIlib_destroy() is never called here anyway.
+bool EnsureInitialized() {
+  static std::once_flag once;
+  static bool ok = false;
+  std::call_once(once, [] { ok = NDIlib_initialize(); });
+  return ok;
 }
 
 // Runs the actual (blocking) NDI send call off the JS thread. The frame
@@ -77,7 +93,13 @@ class NdiSender : public Napi::ObjectWrap<NdiSender> {
       return;
     }
 
-    EnsureInitialized();
+    if (!EnsureInitialized()) {
+      Napi::Error::New(env, std::string("The NDI runtime failed to initialise — this CPU is "
+                                        "not supported by the installed runtime. Reinstall from ") +
+                                RedistUrl())
+          .ThrowAsJavaScriptException();
+      return;
+    }
 
     std::string name = info[0].As<Napi::String>().Utf8Value();
     NDIlib_send_create_t createSettings{};
@@ -87,7 +109,9 @@ class NdiSender : public Napi::ObjectWrap<NdiSender> {
 
     sender_ = NDIlib_send_create(&createSettings);
     if (!sender_) {
-      Napi::Error::New(env, "Failed to create NDI sender — is the NDI runtime installed?")
+      Napi::Error::New(env, std::string("Failed to create the NDI sender. Check the NDI "
+                                        "runtime is installed — get it from ") +
+                                RedistUrl())
           .ThrowAsJavaScriptException();
     }
   }

@@ -170,3 +170,15 @@ procedure: **[docs/UNSIGNED.md](docs/UNSIGNED.md)**.
 ## Recommended IDE Setup
 
 - [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+
+## Trademarks and third-party licences
+
+**NDI® is a registered trademark of Vizrt NDI AB.** See <https://ndi.video>.
+This project is not affiliated with or endorsed by Vizrt.
+
+The NDI runtime is obtained separately under Vizrt's own terms and is not
+redistributed here. NDI Tools are not redistributed either — get them from
+<https://ndi.video/tools>.
+
+H.264, H.265 and AAC are separately licensable formats. The NDI SDK grant does
+not cover them, and the obligation sits with whoever ships a product using them.
