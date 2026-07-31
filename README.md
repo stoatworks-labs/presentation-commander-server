@@ -20,6 +20,62 @@ shipped demo data, and does not show a presentation laptop paired to the server.
 
 ![Presentation Commander Server main window: scene compositor, source pool, matrix inspector, control deck, and control surface](docs/screenshot.png)
 
+<!-- downloads:start -->
+
+## Download
+
+**[v1.0.1](https://github.com/stoatworks-labs/presentation-commander-server/releases/tag/v1.0.1)** — prebuilt for macOS, Windows and Linux. Pick your platform:
+
+<details>
+<summary><b>macOS</b> — Apple Silicon, Intel</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| Apple Silicon · .dmg disk image | [`presentation-commander-server-1.0.1-arm64.dmg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-arm64.dmg) | 129 MB |
+| Intel · .dmg disk image | [`presentation-commander-server-1.0.1-x64.dmg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-x64.dmg) | 136 MB |
+| Apple Silicon · .pkg installer | [`presentation-commander-server-1.0.1-macos-arm64.pkg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-macos-arm64.pkg) | 129 MB |
+| Intel · .pkg installer | [`presentation-commander-server-1.0.1-macos-x64.pkg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-macos-x64.pkg) | 136 MB |
+| Apple Silicon · .zip archive | [`Presentation.Commander.Server-1.0.1-arm64-mac.zip`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/Presentation.Commander.Server-1.0.1-arm64-mac.zip) | 129 MB |
+| Intel · .zip archive | [`Presentation.Commander.Server-1.0.1-mac.zip`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/Presentation.Commander.Server-1.0.1-mac.zip) | 136 MB |
+
+</details>
+
+<details>
+<summary><b>Windows</b> — x64 & ARM64, x64, ARM64</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| x64 & ARM64 · .exe installer | [`presentation-commander-server-1.0.1-setup.exe`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-setup.exe) | 200 MB |
+| x64 · .exe installer | [`presentation-commander-server-1.0.1-x64-setup.exe`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-x64-setup.exe) | 103 MB |
+| ARM64 · .exe installer | [`presentation-commander-server-1.0.1-arm64-setup.exe`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-arm64-setup.exe) | 98 MB |
+| x64 & ARM64 · portable .exe | [`presentation-commander-server-1.0.1-portable.exe`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-portable.exe) | 200 MB |
+| x64 · portable .exe | [`presentation-commander-server-1.0.1-x64-portable.exe`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-x64-portable.exe) | 103 MB |
+| ARM64 · portable .exe | [`presentation-commander-server-1.0.1-arm64-portable.exe`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-arm64-portable.exe) | 98 MB |
+| x64 · .zip archive | [`Presentation.Commander.Server-1.0.1-win.zip`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/Presentation.Commander.Server-1.0.1-win.zip) | 148 MB |
+| ARM64 · .zip archive | [`Presentation.Commander.Server-1.0.1-arm64-win.zip`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/Presentation.Commander.Server-1.0.1-arm64-win.zip) | 147 MB |
+
+</details>
+
+<details>
+<summary><b>Linux</b> — x64, ARM64</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| x64 · .deb package (Debian/Ubuntu) | [`presentation-commander-server_1.0.1_amd64.deb`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server_1.0.1_amd64.deb) | 109 MB |
+| ARM64 · .deb package (Debian/Ubuntu) | [`presentation-commander-server_1.0.1_arm64.deb`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server_1.0.1_arm64.deb) | 103 MB |
+| x64 · .rpm package (Fedora/RHEL) | [`presentation-commander-server-1.0.1.x86_64.rpm`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1.x86_64.rpm) | 85 MB |
+| ARM64 · .rpm package (Fedora/RHEL) | [`presentation-commander-server-1.0.1.aarch64.rpm`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1.aarch64.rpm) | 80 MB |
+| x64 · AppImage | [`presentation-commander-server-1.0.1-x86_64.AppImage`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-x86_64.AppImage) | 134 MB |
+| ARM64 · AppImage | [`presentation-commander-server-1.0.1-arm64.AppImage`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.1/presentation-commander-server-1.0.1-arm64.AppImage) | 134 MB |
+
+</details>
+
+All builds, checksums and release notes: [github.com/stoatworks-labs/presentation-commander-server/releases](https://github.com/stoatworks-labs/presentation-commander-server/releases).
+
+These builds are unsigned, so macOS and Windows each warn once on first launch — see [Unsigned builds — Gatekeeper, SmartScreen & Defender Firewall](#unsigned-builds--gatekeeper-smartscreen--defender-firewall) for the one-time fix.
+
+<!-- downloads:end -->
+
 ## What it does
 
 - **Source Pool** — add/edit/delete NDI and web sources, or pick a real NDI
