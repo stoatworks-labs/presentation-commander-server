@@ -146,55 +146,26 @@ npm run build:mac
 npm run build:linux
 ```
 
-## Unsigned builds — macOS Gatekeeper & Windows SmartScreen
+## Unsigned builds — Gatekeeper, SmartScreen & Defender Firewall
 
-The release builds are **not code-signed or notarized** — that needs paid Apple
-/ Windows developer certificates this project doesn't carry. The app is safe to
-run; the OS just can't verify a publisher, so it warns you the first time.
-Here's how to get past that, and how to sign it yourself if you'd rather.
+The release binaries are **not code-signed or notarized** — that needs paid Apple
+and Microsoft developer certificates this project doesn't carry. The downloads are
+fine; the OS just can't identify the publisher, so it warns you the first time.
 
-### macOS
+- **macOS** — *"cannot be opened because the developer cannot be verified"*.
+  Right-click the app → **Open** → **Open**, or clear the flag:
+  `xattr -dr com.apple.quarantine "/Applications/presentation-commander-server.app"`
+- **Windows** — SmartScreen shows *"Windows protected your PC"* →
+  **More info** → **Run anyway**.
+- **Windows Defender Firewall** — first launch pops *"Allow Presentation Commander
+  Server to communicate on these networks"*. Tick **Private** (and **Domain** on a
+  managed network) — Presentation Commander Server needs it to serve its JSON-RPC
+  control API and route NDI video. Deny it and clients, Companion and the automation API
+  will all fail to connect.
+- **Linux** — no signing gate.
 
-Delivered as a `.dmg`/`.zip`. On first launch macOS says the app **"is damaged
-and can't be opened"** or **"cannot be opened because the developer cannot be
-verified"** — that's Gatekeeper reacting to the missing signature, not an actual
-problem.
-
-Easiest fix: **right-click (Control-click) the app in Applications → Open →
-Open**. You only do this once. If it still says *"damaged"* (common when the
-`.dmg` came through a browser), clear the quarantine flag in Terminal:
-
-```sh
-xattr -dr com.apple.quarantine "/Applications/Presentation Commander Server.app"
-```
-
-### Windows
-
-The installer is an unsigned `.exe`, so SmartScreen shows **"Windows protected
-your PC"** → click **More info → Run anyway**. (Right-click → **Properties** →
-**Unblock** also works.)
-
-### Linux
-
-`.AppImage`: `chmod +x` it and run. `.deb`: `sudo apt install ./<file>.deb`. No
-signing gate.
-
-### Signing it yourself (optional)
-
-macOS ad-hoc (local only, not notarized):
-
-```sh
-codesign --force --deep --sign - "/Applications/Presentation Commander Server.app"
-```
-
-To ship without warnings you need an **Apple Developer Program** membership
-($99/yr) + a *Developer ID Application* certificate, then sign with the hardened
-runtime and notarize with `xcrun notarytool submit … --wait` and
-`xcrun stapler staple`. electron-builder does all of this for you if you set
-`CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` and
-`APPLE_TEAM_ID`. On Windows, clearing SmartScreen needs an Authenticode
-code-signing certificate (`signtool sign`, or `CSC_LINK`/`CSC_KEY_PASSWORD` for
-electron-builder).
+Per-artifact steps, self-signing, checksum verification and the Defender Firewall reset
+procedure: **[docs/UNSIGNED.md](docs/UNSIGNED.md)**.
 
 ## Recommended IDE Setup
 
