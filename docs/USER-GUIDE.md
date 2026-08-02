@@ -1,12 +1,11 @@
-# Presentation Commander Server — User Guide
+# Presentation Commander Server user guide
 
 For the operator running the show. The [README](../README.md) covers installing and getting past
 the unsigned-build warnings; this is what to do once it's open, and what to be careful with.
 
 ---
 
-## 0. What is real, and what is not
-
+## What is real, and what is not
 This matters more here than in most apps, because the interface shows you a broadcast router
 and some of it is a model rather than a machine.
 
@@ -31,8 +30,7 @@ has not been proven on a live show.
 
 ---
 
-## 1. First launch: clear out the demo data
-
+## First launch: clear out the demo data
 The app starts with **seed data baked in**, and it looks like a configured rig:
 
 - three NDI sources (`LAPTOP-STAGE-L (PowerPoint)`, `LAPTOP-STAGE-R (Keynote)`,
@@ -47,16 +45,15 @@ you don't want before you build anything, or you will at some point route a blac
 screen because the thing you routed never existed.
 
 The two demo *clients* cannot be deleted from the UI — they disappear only when the app is
-restarted, which also discards your own work (§2).
+restarted, which also discards your own work ([Nothing is saved](#nothing-is-saved)).
 
 ---
 
-## 2. ⚠ Nothing is saved
-
+## Nothing is saved
 **All state lives in memory.** There is no project file, no autosave, no recent-documents list.
 
 **Quitting the app discards every source you added, every scene you built, and every route you
-set.** Next launch comes back to the demo data in §1.
+set.** Next launch comes back to the demo data in [First launch: clear out the demo data](#first-launch-clear-out-the-demo-data).
 
 Practically, on a show day:
 
@@ -71,8 +68,7 @@ This is the single biggest operational limitation of the current build.
 
 ---
 
-## 3. Sources
-
+## Sources
 Three kinds, from the **Source Pool** panel.
 
 **NDI** — the important distinction: a source **picked from network discovery** carries a host
@@ -88,17 +84,16 @@ alpha (Stagetimer, Ontime, lower thirds); leave it off for a full-frame page.
 
 **Notes** — renders a connected Client Node's *current slide's* presenter note as a text layer.
 This is what makes a real confidence monitor: composite a Notes source over a video source and
-send the result out as NDI (§6).
+send the result out as NDI ([The confidence monitor](#the-confidence-monitor)).
 
-### ⚠ Deleting a source is destructive and immediate
+### Deleting a source is destructive and immediate
 
 Removing a source **clears every output routed to it** and **strips it out of every scene** that
 used it. No confirmation, no undo. A source deleted while on air blacks out its outputs.
 
 ---
 
-## 4. Scenes
-
+## Scenes
 A scene is a stack of layers. **The bottom of the list renders first; the last layer is on top.**
 Drag to reposition, drag a corner to resize, toggle visibility per layer.
 
@@ -112,25 +107,23 @@ Deleting a scene clears any output routed to it, same as with sources.
 
 ---
 
-## 5. Routing
-
+## Routing
 The **Matrix Inspector** routes each output to either a single source **or** a whole composited
 scene. There are four outputs and **the list is fixed** — you cannot add, remove or rename one.
 
 | Output | Kind | Reaches real equipment? |
 |---|---|---|
-| DeckLink 1 — Program | `decklink` | **No** (§0) |
+| DeckLink 1 — Program | `decklink` | **No** ([What is real, and what is not](#what-is-real-and-what-is-not)) |
 | DeckLink 2 — Preview | `decklink` | **No** |
 | Stream Output | `stream` | **No** |
-| Confidence Monitor | `stage-display` | Via the NDI sender (§6) |
+| Confidence Monitor | `stage-display` | Via the NDI sender ([The confidence monitor](#the-confidence-monitor)) |
 
 **Blackout** is simply "route to nothing". To undo it, route the output back — there is no
 separate blackout state that clears itself.
 
 ---
 
-## 6. The confidence monitor
-
+## The confidence monitor
 The one path that produces a signal other equipment can receive.
 
 Build a scene containing a video source plus a **Notes** source, then start the NDI output. The
@@ -148,8 +141,7 @@ Two behaviours worth knowing:
 
 ---
 
-## 7. Client Nodes and presenter notes
-
+## Client Nodes and presenter notes
 A Client Node is the [client app](https://github.com/stoatworks-labs/presentation-commander-client)
 running on a presentation laptop. It connects to this server's hub on port **9800**, registers,
 and streams its slide position and notes.
@@ -160,13 +152,13 @@ you don't add it, and you can't usefully remove it (the next registration recrea
 The **Control Deck** shows live notes and slide position per client. The **Control Surface**
 gives you scene recall, blackout, next/previous slide and send-note-to-stage as buttons.
 
-### ⚠ Client names must be unique
+### Client names must be unique
 
 Registration matches on **name**. Two laptops registering as `STAGE-L` **collapse into one
 client** — the second overwrites the first's platform and app, and both sets of slide state
 land on the same entry. Name every machine distinctly before the show.
 
-### ⚠ Next/previous slide can succeed without advancing anything
+### Next/previous slide can succeed without advancing anything
 
 If the target client is **connected**, the command is forwarded to it and the real deck moves.
 
@@ -178,7 +170,7 @@ that client at all, absolutely nothing happens — and the control still reports
 Before trusting a slide button, check the client shows as **online**. This applies equally to
 the Stream Deck buttons, which go through the same path.
 
-### ⚠ Anyone on the network can register as a client
+### Anyone on the network can register as a client
 
 The hub listens on all interfaces with **no authentication** — no password, no token, no
 allowlist, no TLS. Any device that can reach port 9800 can register itself as a Client Node and
@@ -189,8 +181,7 @@ Run this on a locked-down production network. It is not safe on venue or guest W
 
 ---
 
-## 8. Stream Deck / Companion
-
+## Stream Deck / Companion
 The [Companion module](https://github.com/stoatworks-labs/companion-module-presentationcommander-server)
 drives the server over HTTP on port **9700**, using exactly the same command path as the in-app
 Control Surface — so a button and a click do the same thing by construction.
@@ -205,38 +196,36 @@ button; send an empty message.
 
 ---
 
-## 9. Troubleshooting
-
+## Troubleshooting
 | Symptom | Cause |
 |---|---|
-| **A layer shows a grey box, never video** | The NDI source was added by typing a name rather than picked from discovery, so it has no port and cannot be received (§3). |
+| **A layer shows a grey box, never video** | The NDI source was added by typing a name rather than picked from discovery, so it has no port and cannot be received ([Sources](#sources)). |
 | **A sender on the network never appears in discovery** | mDNS doesn't cross subnets. Different VLAN = invisible. |
-| **Routed an output, nothing appeared on the screen** | If it's a DeckLink or Stream output, that is expected — no physical I/O exists (§0). |
-| **Everything vanished after a restart** | Expected. Nothing is persisted (§2). |
-| **Demo sources are back** | Same cause — the app reseeded (§1). |
-| **Two laptops show as one client** | They registered with the same name (§7). |
-| **Slide button "works" but the deck doesn't move** | The client is offline and the server simulated it locally (§7). |
+| **Routed an output, nothing appeared on the screen** | If it's a DeckLink or Stream output, that is expected — no physical I/O exists ([What is real, and what is not](#what-is-real-and-what-is-not)). |
+| **Everything vanished after a restart** | Expected. Nothing is persisted ([Nothing is saved](#nothing-is-saved)). |
+| **Demo sources are back** | Same cause — the app reseeded ([First launch: clear out the demo data](#first-launch-clear-out-the-demo-data)). |
+| **Two laptops show as one client** | They registered with the same name ([Client Nodes and presenter notes](#client-nodes-and-presenter-notes)). |
+| **Slide button "works" but the deck doesn't move** | The client is offline and the server simulated it locally ([Client Nodes and presenter notes](#client-nodes-and-presenter-notes)). |
 | **Slide button does nothing at all** | Client offline *and* no notes held for it — the fallback has nothing to move through. |
 | **A client's notes are stale** | Notes are replaced wholesale on each sync, and timestamps are stamped at receive time, so they show the last sync, not when a note was written. |
 | **A client is sending but the server ignores it** | Malformed JSON is dropped silently, and `slide-state` before `register` is ignored. Nothing is logged to the operator. |
-| **Deleting a source blacked out an output** | Expected and immediate — deletion clears routes and scene layers (§3). |
-| **Confidence monitor frozen at the far end** | Not necessarily dead — the sender repeats the last frame every second by design (§6). |
-| **Companion can't reach the server** | Port 9700 is loopback-only. It needs a tunnel from another machine (§8). |
+| **Deleting a source blacked out an output** | Expected and immediate — deletion clears routes and scene layers ([Sources](#sources)). |
+| **Confidence monitor frozen at the far end** | Not necessarily dead — the sender repeats the last frame every second by design ([The confidence monitor](#the-confidence-monitor)). |
+| **Companion can't reach the server** | Port 9700 is loopback-only. It needs a tunnel from another machine ([Stream Deck / Companion](#stream-deck-companion)). |
 | **macOS says the app is damaged** | Unsigned build; see the README's Gatekeeper section. |
 
 ---
 
-## 10. Before a show — a short checklist
-
-1. Launch the app and **delete the demo sources and scenes** (§1).
-2. Add sources **from the discovery picker**, not by typing names (§3).
-3. Confirm each NDI layer shows live video before routing it (§4).
-4. Check every client shows **online** before relying on a slide button (§7).
+## Before a show — a short checklist
+1. Launch the app and **delete the demo sources and scenes** ([First launch: clear out the demo data](#first-launch-clear-out-the-demo-data)).
+2. Add sources **from the discovery picker**, not by typing names ([Sources](#sources)).
+3. Confirm each NDI layer shows live video before routing it ([Scenes](#scenes)).
+4. Check every client shows **online** before relying on a slide button ([Client Nodes and presenter notes](#client-nodes-and-presenter-notes)).
 5. Confirm what actually reaches equipment: the **NDI confidence-monitor output**, and nothing
-   else (§0).
-6. **Do not quit the app** until you are done for the day (§2).
+   else ([What is real, and what is not](#what-is-real-and-what-is-not)).
+6. **Do not quit the app** until you are done for the day ([Nothing is saved](#nothing-is-saved)).
 7. Make sure the network this is on is not reachable by anyone you wouldn't hand the show to
-   (§7, §8).
+   ([Client Nodes and presenter notes](#client-nodes-and-presenter-notes), [Stream Deck / Companion](#stream-deck-companion)).
 
 ---
 
