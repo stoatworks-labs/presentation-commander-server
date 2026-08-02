@@ -101,7 +101,14 @@ function App(): React.JSX.Element {
         activeSlideIndex={state.activeSlideIndex}
         active={ndiOutputActive}
       />
-      <div className="app-titlebar">Presentation Commander</div>
+      <div className="app-titlebar">
+        <span>Presentation Commander</span>
+        {/* Opens the shared About dialog — see public/about.js, which delegates
+            this attribute from the document, so nothing needs importing here. */}
+        <button type="button" className="titlebar-about" data-stoatworks-about>
+          About
+        </button>
+      </div>
       <div className="app-grid">
         <div className="left-column">
           <Scenes
