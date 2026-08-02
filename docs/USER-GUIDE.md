@@ -211,7 +211,7 @@ button; send an empty message.
 | **A client is sending but the server ignores it** | Malformed JSON is dropped silently, and `slide-state` before `register` is ignored. Nothing is logged to the operator. |
 | **Deleting a source blacked out an output** | Expected and immediate — deletion clears routes and scene layers ([Sources](#sources)). |
 | **Confidence monitor frozen at the far end** | Not necessarily dead — the sender repeats the last frame every second by design ([The confidence monitor](#the-confidence-monitor)). |
-| **Companion can't reach the server** | Port 9700 is loopback-only. It needs a tunnel from another machine ([Stream Deck / Companion](#stream-deck-companion)). |
+| **Companion can't reach the server** | Port 9700 is loopback-only. It needs a tunnel from another machine ([Stream Deck / Companion](#stream-deck--companion)). |
 | **macOS says the app is damaged** | Unsigned build; see the README's Gatekeeper section. |
 
 ---
@@ -225,7 +225,7 @@ button; send an empty message.
    else ([What is real, and what is not](#what-is-real-and-what-is-not)).
 6. **Do not quit the app** until you are done for the day ([Nothing is saved](#nothing-is-saved)).
 7. Make sure the network this is on is not reachable by anyone you wouldn't hand the show to
-   ([Client Nodes and presenter notes](#client-nodes-and-presenter-notes), [Stream Deck / Companion](#stream-deck-companion)).
+   ([Client Nodes and presenter notes](#client-nodes-and-presenter-notes), [Stream Deck / Companion](#stream-deck--companion)).
 
 ---
 
