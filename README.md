@@ -31,12 +31,12 @@ shipped demo data, and does not show a presentation laptop paired to the server.
 
 | Build | Download | Size |
 | --- | --- | --- |
-| Apple Silicon · .dmg disk image | [`presentation-commander-server-1.0.2-arm64.dmg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/presentation-commander-server-1.0.2-arm64.dmg) | 129 MB |
+| Apple Silicon · .dmg disk image | [`presentation-commander-server-1.0.2-arm64.dmg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/presentation-commander-server-1.0.2-arm64.dmg) | 128 MB |
 | Intel · .dmg disk image | [`presentation-commander-server-1.0.2-x64.dmg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/presentation-commander-server-1.0.2-x64.dmg) | 136 MB |
-| Apple Silicon · .pkg installer | [`presentation-commander-server-1.0.2-macos-arm64.pkg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/presentation-commander-server-1.0.2-macos-arm64.pkg) | 129 MB |
-| Intel · .pkg installer | [`presentation-commander-server-1.0.2-macos-x64.pkg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/presentation-commander-server-1.0.2-macos-x64.pkg) | 136 MB |
-| Apple Silicon · .zip archive | [`Presentation.Commander.Server-1.0.2-arm64-mac.zip`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/Presentation.Commander.Server-1.0.2-arm64-mac.zip) | 125 MB |
-| Intel · .zip archive | [`Presentation.Commander.Server-1.0.2-mac.zip`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/Presentation.Commander.Server-1.0.2-mac.zip) | 132 MB |
+| Apple Silicon · .pkg installer | [`presentation-commander-server-1.0.2-macos-arm64.pkg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/presentation-commander-server-1.0.2-macos-arm64.pkg) | 128 MB |
+| Intel · .pkg installer | [`presentation-commander-server-1.0.2-macos-x64.pkg`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/presentation-commander-server-1.0.2-macos-x64.pkg) | 137 MB |
+| Apple Silicon · .zip archive | [`Presentation.Commander.Server-1.0.2-arm64-mac.zip`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/Presentation.Commander.Server-1.0.2-arm64-mac.zip) | 128 MB |
+| Intel · .zip archive | [`Presentation.Commander.Server-1.0.2-mac.zip`](https://github.com/stoatworks-labs/presentation-commander-server/releases/download/v1.0.2/Presentation.Commander.Server-1.0.2-mac.zip) | 137 MB |
 
 </details>
 
@@ -72,7 +72,7 @@ shipped demo data, and does not show a presentation laptop paired to the server.
 
 All builds, checksums and release notes: [github.com/stoatworks-labs/presentation-commander-server/releases](https://github.com/stoatworks-labs/presentation-commander-server/releases).
 
-The Windows builds are unsigned, so SmartScreen warns once — see [Unsigned builds — Gatekeeper, SmartScreen & Defender Firewall](#unsigned-builds--gatekeeper-smartscreen--defender-firewall) for the one-time click-through.
+The Windows builds are unsigned, so SmartScreen warns once — see [Windows SmartScreen & Defender Firewall](#windows-smartscreen--defender-firewall) for the one-time click-through.
 
 <!-- downloads:end -->
 
