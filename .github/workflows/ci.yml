@@ -31,11 +31,22 @@ jobs:
           node-version: 22
           cache: npm
 
-      # postinstall runs `electron-builder install-app-deps`, which fetches the
-      # Electron binary — fine on a runner, unlike the local machine where
-      # postinstall scripts are blocked.
+      # --ignore-scripts, and it is load-bearing. postinstall runs
+      # `electron-builder install-app-deps`, which node-gyp-rebuilds
+      # native/ndi-send against the Electron ABI — and that needs the NDI SDK,
+      # a licence-gated download that only build-windows.yml fetches, on
+      # Windows. On Linux it fails with `gyp failed with exit code: 1` before
+      # any of this repo's own code is looked at.
+      #
+      # Skipping it costs nothing this check was going to catch: the native
+      # addon is loaded at runtime, not bundled, so typecheck and
+      # electron-vite build do not touch it, and build-windows.yml is where it
+      # is compiled for real. What matters is that the flag here is
+      # --ignore-scripts and NOT --legacy-peer-deps: the peer graph is still
+      # resolved strictly, which is the whole point of this check on a stack
+      # that cannot absorb typescript 7, eslint 10 or vite 8.
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       # Covers main/preload and renderer/web separately — a bare tsc misses one.
       - name: Typecheck
