@@ -1,0 +1,58 @@
+name: ci
+
+# Until this existed the repo had only tag- and dispatch-triggered workflows, so
+# no workflow ran on `pull_request` and Dependabot bumps arrived with nothing to
+# gate a merge on.
+#
+# `npm ci` is deliberately plain — no --legacy-peer-deps. That is the whole
+# point here: this is the electron-vite stack that cannot absorb typescript 7,
+# eslint 10 or vite 8, and until now the only defence against merging one was
+# recognising the PR title. A bump that only installs by ignoring the peer graph
+# now turns the check red by itself.
+#
+# `npm run lint` is deliberately not a step: it already fails on main with
+# @typescript-eslint/explicit-function-return-type findings, and gating every
+# bump on a pre-existing red would block the PRs this workflow exists to
+# unblock. There is no `test` script to run.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # --ignore-scripts, and it is load-bearing. postinstall runs
+      # `electron-builder install-app-deps`, which node-gyp-rebuilds
+      # native/ndi-send against the Electron ABI — and that needs the NDI SDK,
+      # a licence-gated download that only build-windows.yml fetches, on
+      # Windows. On Linux it fails with `gyp failed with exit code: 1` before
+      # any of this repo's own code is looked at.
+      #
+      # Skipping it costs nothing this check was going to catch: the native
+      # addon is loaded at runtime, not bundled, so typecheck and
+      # electron-vite build do not touch it, and build-windows.yml is where it
+      # is compiled for real. What matters is that the flag here is
+      # --ignore-scripts and NOT --legacy-peer-deps: the peer graph is still
+      # resolved strictly, which is the whole point of this check on a stack
+      # that cannot absorb typescript 7, eslint 10 or vite 8.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      # Covers main/preload and renderer/web separately — a bare tsc misses one.
+      - name: Typecheck
+        run: npm run typecheck
+
+      # `build` re-runs typecheck and then electron-vite build. Kept explicit so
+      # a typecheck failure is reported as one.
+      - name: Build
+        run: npm run build
