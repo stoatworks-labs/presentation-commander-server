@@ -65,7 +65,7 @@ jobs:
           path: dist/*.exe
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: "${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('windows-build-{0}', github.run_number) }}"
           name: "${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Windows Build {0}', github.run_number) }}"
