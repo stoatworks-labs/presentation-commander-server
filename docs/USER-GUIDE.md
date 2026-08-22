@@ -212,7 +212,7 @@ button; send an empty message.
 | **Deleting a source blacked out an output** | Expected and immediate — deletion clears routes and scene layers ([Sources](#sources)). |
 | **Confidence monitor frozen at the far end** | Not necessarily dead — the sender repeats the last frame every second by design ([The confidence monitor](#the-confidence-monitor)). |
 | **Companion can't reach the server** | Port 9700 is loopback-only. It needs a tunnel from another machine ([Stream Deck / Companion](#stream-deck--companion)). |
-| **macOS says the app is damaged** | Unsigned build; see the README's Gatekeeper section. |
+| **macOS says the app is damaged** | Not the released build — those are signed and notarised. A self-built or pre-notarisation copy is quarantined; see the README's Gatekeeper section. |
 
 ---
 
