@@ -1,5 +1,9 @@
 // Domain types shared across main, preload, and renderer processes.
 
+// Reuse the wire-protocol unions rather than restating them: they were spelled
+// out inline here and drifted (a Linux client had nowhere to be represented).
+import type { ClientApp, ClientPlatform } from './protocol'
+
 export type SourceKind = 'ndi' | 'web' | 'notes'
 
 export interface NdiSource {
@@ -84,8 +88,8 @@ export interface PresenterNote {
 export interface ClientNode {
   id: string
   name: string
-  platform: 'windows' | 'macos'
-  app: 'powerpoint' | 'keynote' | 'google-slides' | 'canva' | 'pdf'
+  platform: ClientPlatform
+  app: ClientApp
   online: boolean
   lastSeen: number
   /** Set once a live Client Node has synced its deck; absent for mock/demo clients. */
