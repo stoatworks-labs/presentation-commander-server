@@ -19,7 +19,10 @@ import { installElectronDiagnostics } from './diag/electron.js'
 initDiag({
   app: 'presentation-commander-server',
   envPrefix: 'PC_SERVER',
-  version: '1.0.0',
+  // From package.json via electron-builder, so it cannot drift from the
+  // release the way a hand-maintained literal did (every build from
+  // 1.0.0 onward logged that version regardless of the real one).
+  version: app.getVersion(),
   cwd: app_diag_cwd()
 })
 installElectronDiagnostics()
