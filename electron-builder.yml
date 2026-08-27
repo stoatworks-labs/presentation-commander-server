@@ -24,13 +24,19 @@ asarUnpack:
   - '**/*.dll'
 win:
   executableName: presentation-commander-server
+  # x64 ONLY, deliberately. The NDI addons are native code and `npmRebuild` is
+  # off, so an arm64 target just repackages whatever .node was last built —
+  # v1.1.0/v1.2.0 shipped arm64 installers carrying x86-64 addons and an x64
+  # NDI runtime, which cannot load at all. CI only builds windows-x64 (see
+  # .github/workflows/release.yml), so there is no arm64 addon to ship. Add
+  # arm64 back only alongside a matrix job that actually builds it.
   target:
     - target: nsis
-      arch: [x64, arm64]
+      arch: [x64]
     - target: portable
-      arch: [x64, arm64]
+      arch: [x64]
     - target: zip
-      arch: [x64, arm64]
+      arch: [x64]
 nsis:
   artifactName: ${name}-${version}-${arch}-setup.${ext}
   shortcutName: ${productName}
@@ -63,13 +69,18 @@ linux:
   # Each target needs an explicit arch list. Without one electron-builder
   # builds the host architecture only, which on this Mac silently produced
   # arm64-only Linux packages and no x64 at all.
+  #
+  # x64 ONLY, for the same reason as `win` above: the arm64 packages shipped an
+  # aarch64 Electron binary with x86-64 NDI addons beside it. release.yml's
+  # own comment already says arm64 NDI libs are unreliable, so x64 is the
+  # honest coverage.
   target:
     - target: AppImage
-      arch: [x64, arm64]
+      arch: [x64]
     - target: deb
-      arch: [x64, arm64]
+      arch: [x64]
     - target: rpm
-      arch: [x64, arm64]
+      arch: [x64]
   maintainer: Allan Sargeant <allan.sargeant@gmail.com>
   category: AudioVideo
 appImage:
