@@ -3,6 +3,10 @@
 For the operator running the show. The [README](../README.md) covers installing and getting past
 the unsigned-build warnings; this is what to do once it's open, and what to be careful with.
 
+![The main window: scene compositor, source pool, matrix inspector, control deck and control surface.](screenshot.png)
+
+*The main window: scene compositor, source pool, matrix inspector, control deck and control surface.*
+
 ---
 
 ## What is real, and what is not
