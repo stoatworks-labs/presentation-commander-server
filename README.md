@@ -1,22 +1,20 @@
 # Presentation Commander — Server
 
 > **AI-assisted project.** This codebase was created with [Claude](https://claude.com/claude-code)
-> (Anthropic), directed and reviewed by a human author — including architecture,
-> implementation, and documentation. Review it accordingly before relying on it in
-> production.
+> (Anthropic), directed and reviewed by a human author. That covers the architecture, the
+> implementation and the documentation. Check it over before you rely on it for a show.
 
-The master control application for live event production: a real-time NDI
-video matrix router, layered scene compositor, and presenter-notes hub,
-built as an Electron + React + TypeScript desktop app.
+The master control app for a live event: a real-time NDI video matrix router, a layered scene
+compositor and a presenter-notes hub, built as an Electron + React + TypeScript desktop app.
 
-Pairs with [presentation-commander-client](https://github.com/stoatworks-labs/presentation-commander-client),
-the companion app that runs on each presentation laptop.
+It pairs with [presentation-commander-client](https://github.com/stoatworks-labs/presentation-commander-client),
+the app that runs on each presentation laptop.
 
-[![Watch it running — 43 seconds](docs/video-thumb.png)](https://www.youtube.com/watch?v=sTzrCB5XlY8)
+[![Watch it running (43 seconds)](docs/video-thumb.png)](https://www.youtube.com/watch?v=sTzrCB5XlY8)
 
-*A 43-second tour. Every frame is the real application, recorded on screen and driven over
-the automation API on `:9700` — the same endpoint the Companion module uses. It runs on the
-shipped demo data, and does not show a presentation laptop paired to the server.*
+*A 43-second tour. It's the app itself the whole way through, recorded on screen and driven
+over the automation API on `:9700`, which is the same endpoint the Companion module uses. It's
+running on the demo data it ships with, and there's no presentation laptop paired to the server.*
 
 ![Presentation Commander Server main window: scene compositor, source pool, matrix inspector, control deck, and control surface](docs/screenshot.png)
 
@@ -70,30 +68,27 @@ macOS builds are signed and notarised and open normally. The Windows builds are 
 
 ## What it does
 
-- **Source Pool** — add/edit/delete NDI and web sources, or pick a real NDI
-  sender discovered live on the network (mDNS `_ndi._tcp.local`)
-- **Scenes** — layered scene compositor: build scenes from multiple layered
-  sources, drag to reposition, drag a corner to resize, toggle visibility.
-  Layers backed by a real network source show a **live video preview**
-  rendered from actual received NDI frames, not a placeholder box
-- **Matrix Inspector** — route any physical/stream/stage output to a source
-  or a full composited scene
-- **Control Deck** — live presenter notes and slide position per connected
-  Client Node
-- **Control Surface** — a button-grid control surface: scene recall, blackout,
-  next/previous slide, send-note-to-stage — all backed by the same command
-  path used by the JSON-RPC automation API (`:9700`), which also powers the
+- **Source Pool:** add, edit and delete NDI and web sources, or pick an actual NDI
+  sender it's found on the network (mDNS `_ndi._tcp.local`).
+- **Scenes:** a layered scene compositor. Build scenes from several layered sources, drag
+  to reposition, drag a corner to resize, and toggle visibility. Layers backed by a real
+  network source show a **live video preview** rendered from the NDI frames coming in,
+  not a placeholder box.
+- **Matrix Inspector:** route any physical/stream/stage output to a source or a full
+  composited scene.
+- **Control Deck:** live presenter notes and slide position for each connected Client Node.
+- **Control Surface:** a grid of buttons for scene recall, blackout, next/previous slide
+  and send-note-to-stage, all going through the same command path as the JSON-RPC
+  automation API (`:9700`), which also drives the
   [Bitfocus Companion module](https://github.com/stoatworks-labs/companion-module-presentationcommander-server)
-  for Stream Deck integration
-- **Confidence Monitor** — a `Presenter Notes` source type composites live
-  presenter notes over video into one real NDI output (`native/ndi-send`,
-  the same addon architecture as the Client's NDI send), so a physical
-  stage monitor gets an actual broadcast signal instead of a text box in
-  the operator's own window
-- **Client Hub** (`:9800`) — WebSocket server that Client Nodes register
-  with; connected clients automatically appear as routable sources, and
-  next/previous-slide commands are forwarded live to the client instead of
-  being simulated locally
+  for Stream Deck.
+- **Confidence Monitor:** a `Presenter Notes` source type composites live presenter
+  notes over video into one proper NDI output (`native/ndi-send`, the same addon
+  architecture as the Client's NDI send), so a physical stage monitor gets an actual
+  broadcast signal rather than a text box in the operator's own window.
+- **Client Hub** (`:9800`): a WebSocket server that Client Nodes register with. Connected
+  clients turn up as routable sources on their own, and next/previous-slide commands are
+  passed on live to the client instead of being faked locally.
 
 ## Architecture
 
@@ -135,21 +130,21 @@ graph LR
 ## What's real vs. mocked
 
 NDI **discovery and receive are real**, built directly against the official
-[Vizrt NDI SDK](https://ndi.video/for-developers/ndi-sdk/) via a small
-native N-API addon (`native/ndi-receive`) — no third-party NDI wrapper.
-Source discovery uses mDNS; the scene compositor's layer previews are
-actual decoded video frames pulled from the network with
+[Vizrt NDI SDK](https://ndi.video/for-developers/ndi-sdk/) through a small
+native N-API addon (`native/ndi-receive`), with no third-party NDI wrapper.
+Source discovery uses mDNS, and the scene compositor's layer previews are
+actual decoded video frames pulled off the network with
 `NDIlib_recv_capture_v3`. DeckLink capture cards and other physical
-broadcast hardware are still out of scope — this project has no way to
-test against hardware it doesn't have.
+broadcast hardware are still out of scope, because I've no way to test
+against hardware I haven't got.
 
 ### Building from source
 
 The native receive addon links against the NDI SDK at build time. Install
 the [NDI SDK](https://ndi.video/for-developers/ndi-sdk/) first (macOS
-default: `/Library/NDI SDK for Apple`; override the location with
-`NDI_SDK_DIR` if yours lives elsewhere). `npm install` rebuilds the addon
-automatically via `@electron/rebuild`.
+default: `/Library/NDI SDK for Apple`; set `NDI_SDK_DIR` if yours lives
+somewhere else). `npm install` rebuilds the addon automatically via
+`@electron/rebuild`.
 
 ## Documentation
 
@@ -160,12 +155,12 @@ automatically via `@electron/rebuild`.
 | [docs/DEVELOPING.md](docs/DEVELOPING.md) | Setup, the NDI SDK build dependency, packaging traps, architecture |
 
 Two things worth knowing before a show, both covered in the user guide: **nothing is
-persisted** — quitting discards every source, scene and route — and the app starts with
+saved** (quitting throws away every source, scene and route), and the app starts with
 **demo data** that looks like a configured rig but isn't.
 
 ## Roadmap / TODO
 
-- [ ] **Physical capture hardware** — DeckLink capture cards and other broadcast I/O are currently out of scope; the project has no way to test against hardware it doesn't have. NDI discovery/receive and the compositor are real (see "What's real vs. mocked" above).
+- [ ] **Physical capture hardware:** DeckLink capture cards and other broadcast I/O are out of scope for now, as I've no way to test against hardware I haven't got. NDI discovery/receive and the compositor are real (see "What's real vs. mocked" above).
 
 ## Project Setup
 
@@ -196,18 +191,18 @@ npm run build:linux
 
 ## Windows SmartScreen & Defender Firewall
 
-macOS builds are **Developer ID-signed and notarised by Apple** — they open
+macOS builds are **Developer ID-signed and notarised by Apple**, so they open
 normally, with no Gatekeeper warning and no quarantine step. The Windows
-binaries are **not** code-signed, so Windows still warns you the first time.
+binaries **aren't** code-signed, so Windows still warns you the first time.
 
-- **Windows** — SmartScreen shows *"Windows protected your PC"* →
+- **Windows:** SmartScreen shows *"Windows protected your PC"* →
   **More info** → **Run anyway**.
-- **Windows Defender Firewall** — first launch pops *"Allow Presentation Commander
+- **Windows Defender Firewall:** the first launch pops up *"Allow Presentation Commander
   Server to communicate on these networks"*. Tick **Private** (and **Domain** on a
-  managed network) — Presentation Commander Server needs it to serve its JSON-RPC
+  managed network). Presentation Commander Server needs it to serve its JSON-RPC
   control API and route NDI video. Deny it and clients, Companion and the automation API
   will all fail to connect.
-- **Linux** — no signing gate.
+- **Linux:** no signing gate.
 
 Per-artifact steps, self-signing, checksum verification and the Defender Firewall reset
 procedure: **[docs/UNSIGNED.md](docs/UNSIGNED.md)**.
