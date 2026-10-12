@@ -99,7 +99,8 @@ code are separate projects; checking one proves nothing about the other.
 
 All packaging runs `--publish never`.
 
-CI: `.github/workflows/build-windows.yml` (tag `v*` or manual) and `release.yml`.
+CI: `.github/workflows/build-windows.yml` (tag `v*` or manual), `release.yml`, and `ci.yml`
+(install, typecheck and build on pushes to main and on pull requests).
 
 ---
 

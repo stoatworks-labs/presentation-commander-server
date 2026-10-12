@@ -95,7 +95,7 @@ macOS builds are signed and notarised and open normally. The Windows builds are 
 ```mermaid
 graph LR
     subgraph laptop["Presentation Laptop (Client Node)"]
-        SS["SlideSource<br/>PDF · Keynote · Google Slides"]
+        SS["SlideSource<br/>PDF · Keynote · PowerPoint · Google Slides · Canva"]
         NDIsend["NDI Send<br/>native/ndi-send"]
         ProgOut["Program Out window"]
         SL["serverLink.ts"]
@@ -105,7 +105,7 @@ graph LR
     end
 
     subgraph browser["Browser (optional)"]
-        GSExt["Google Slides<br/>MV3 extension"]
+        GSExt["Google Slides /<br/>Canva<br/>MV3 extension"]
     end
     GSExt -- "ws://localhost:9801" --> SL
 
