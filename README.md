@@ -7,6 +7,8 @@
 The master control app for a live event: a real-time NDI video matrix router, a layered scene
 compositor and a presenter-notes hub, built as an Electron + React + TypeScript desktop app.
 
+The [project page](https://stoatworks-labs.com/software/presentation-commander-server/) has the downloads, the [user guide](https://stoatworks-labs.com/software/presentation-commander-server/guide/) and the video.
+
 It pairs with [presentation-commander-client](https://github.com/stoatworks-labs/presentation-commander-client),
 the app that runs on each presentation laptop.
 
