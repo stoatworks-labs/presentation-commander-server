@@ -27,7 +27,7 @@
     "ndi-receive": "file:./native/ndi-receive",
     "ndi-send": "file:./native/ndi-send",
     "pino": "^10.4.0",
-    "ws": "^8.22.1"
+    "ws": "^8.22.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.1",
