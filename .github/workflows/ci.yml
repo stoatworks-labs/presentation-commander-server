@@ -10,10 +10,7 @@ name: ci
 # recognising the PR title. A bump that only installs by ignoring the peer graph
 # now turns the check red by itself.
 #
-# `npm run lint` is deliberately not a step: it already fails on main with
-# @typescript-eslint/explicit-function-return-type findings, and gating every
-# bump on a pre-existing red would block the PRs this workflow exists to
-# unblock. There is no `test` script to run.
+# There is no `test` script to run.
 on:
   push:
     branches: [main]
@@ -51,6 +48,15 @@ jobs:
       # Covers main/preload and renderer/web separately — a bare tsc misses one.
       - name: Typecheck
         run: npm run typecheck
+
+      # Fails on errors only; the warnings that remain do not fail it. Lint was
+      # once left out because main already failed it, on
+      # explicit-function-return-type findings in plain JS under public/: the
+      # shared electron-toolkit config switches that rule off for `*.js`, which
+      # in flat config matches only root-level files. eslint.config.mjs now
+      # switches it off for nested JS as well.
+      - name: Lint
+        run: npm run lint
 
       # `build` re-runs typecheck and then electron-vite build. Kept explicit so
       # a typecheck failure is reported as one.
